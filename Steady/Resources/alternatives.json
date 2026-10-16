@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "updated": "2026-10-16",
+  "notes": "Alternative ladders. For a plan type + barrier, show up to 3 options (highest effort first). If a barrier isn't listed for a plan type, use 'default'. effort: 1 = easiest, 3 = closest to Plan A. Options with is_rest true are deliberate rest and are logged neutrally. Craving barriers always include a wait option and a planned_treat option.",
+  "barriers": [
+    { "id": "low_energy", "label": "Low energy" },
+    { "id": "sore", "label": "Sore or run down" },
+    { "id": "stressed", "label": "Stressed" },
+    { "id": "no_time", "label": "No time" },
+    { "id": "bad_weather", "label": "Rain or too hot" },
+    { "id": "home_late", "label": "Home late" },
+    { "id": "no_kitchen", "label": "Can't cook" },
+    { "id": "social_plans", "label": "Plans with friends" },
+    { "id": "low_budget", "label": "Low on money" },
+    { "id": "craving_supper", "label": "Want supper" },
+    { "id": "craving_delivery", "label": "Want delivery" },
+    { "id": "craving_sweet_drink", "label": "Want bubble tea / sweet drink" },
+    { "id": "scrolling_in_bed", "label": "Scrolling in bed" },
+    { "id": "another_option", "label": "Just show me another option" }
+  ],
+  "plans": [
+    {
+      "plan_type": "strength",
+      "outcome": "A meaningful strength stimulus this week",
+      "options": {
+        "low_energy": [
+          { "id": "str_condensed", "title": "Condensed session", "minutes": 25, "effort": 2, "keeps": "Main strength stimulus on the 3 big lifts", "gives_up": "Accessory work and some volume", "steps": ["First 3 exercises only", "2 sets each", "Stop 2–3 reps before failure"] },
+          { "id": "str_walk_mobility", "title": "Easy walk + mobility", "minutes": 30, "effort": 1, "keeps": "Movement and the routine", "gives_up": "Strength stimulus today", "steps": ["20 min easy walk", "10 min mobility", "Reschedule the session"] },
+          { "id": "str_rest", "title": "Rest on purpose", "minutes": 0, "effort": 1, "keeps": "Recovery for a better session soon", "gives_up": "Today's session", "steps": ["Early night", "Reschedule for the next free slot"], "is_rest": true }
+        ],
+        "sore": [
+          { "id": "str_upper_only", "title": "Upper body only", "minutes": 30, "effort": 2, "keeps": "Strength work for muscles that aren't sore", "gives_up": "Lower body today", "steps": ["Press, row, pulldown", "3 sets each, moderate weight"] },
+          { "id": "str_walk_mobility_sore", "title": "Easy walk + mobility", "minutes": 30, "effort": 1, "keeps": "Blood flow and movement", "gives_up": "Strength stimulus today", "steps": ["20 min easy walk", "10 min gentle mobility"] },
+          { "id": "str_rest_sore", "title": "Rest on purpose", "minutes": 0, "effort": 1, "keeps": "Recovery", "gives_up": "Today's session", "steps": ["Sleep is the training today"], "is_rest": true }
+        ],
+        "no_time": [
+          { "id": "str_20min_bodyweight", "title": "20-min bodyweight circuit (room)", "minutes": 20, "effort": 2, "keeps": "Some strength work without travel", "gives_up": "Heavier loading", "steps": ["Push-ups, split squats, backpack rows, glute bridges, plank", "3 rounds"] },
+          { "id": "str_reschedule", "title": "Move it to the next free slot", "minutes": 0, "effort": 3, "keeps": "The full session", "gives_up": "Doing it today", "steps": ["Pick a slot", "Confirm to add it to your calendar"] }
+        ],
+        "stressed": [
+          { "id": "str_normal_light", "title": "Normal session, lighter weights", "minutes": 45, "effort": 2, "keeps": "The routine and a stress outlet", "gives_up": "Pushing for new weights", "steps": ["Same exercises", "Leave 3 reps in the tank"] },
+          { "id": "str_walk_outside", "title": "Walk outside instead", "minutes": 30, "effort": 1, "keeps": "Movement and a head-clearing break", "gives_up": "Strength stimulus today", "steps": ["30 min walk, shade if it's hot"] }
+        ],
+        "social_plans": [
+          { "id": "str_morning_swap", "title": "Do it earlier (condensed)", "minutes": 25, "effort": 2, "keeps": "Main lifts and your plans", "gives_up": "Some volume", "steps": ["Condensed session before your plans"] },
+          { "id": "str_tomorrow", "title": "Move to tomorrow", "minutes": 0, "effort": 3, "keeps": "The full session", "gives_up": "Today's slot", "steps": ["Confirm the new slot"] }
+        ],
+        "default": [
+          { "id": "str_condensed_d", "title": "Condensed session", "minutes": 25, "effort": 2, "keeps": "Main strength stimulus", "gives_up": "Some volume", "steps": ["First 3 exercises × 2 sets"] },
+          { "id": "str_bodyweight_d", "title": "Bodyweight circuit", "minutes": 20, "effort": 2, "keeps": "Some strength work anywhere", "gives_up": "Heavier loading", "steps": ["3 rounds of the no-gym circuit"] },
+          { "id": "str_reschedule_d", "title": "Reschedule", "minutes": 0, "effort": 3, "keeps": "The full session", "gives_up": "Doing it now", "steps": ["Pick a slot and confirm"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "cardio",
+      "outcome": "Aerobic fitness and the habit of moving",
+      "options": {
+        "no_time": [
+          { "id": "car_10_brisk", "title": "10-min brisk walk", "minutes": 10, "effort": 1, "keeps": "Some aerobic movement and the routine cue", "gives_up": "Most of the endurance work", "steps": ["Walk fast enough that talking is a bit harder"] },
+          { "id": "car_stairs", "title": "Stairs between classes", "minutes": 10, "effort": 2, "keeps": "Short, harder aerobic effort", "gives_up": "Duration", "steps": ["Take the stairs for every trip today"] }
+        ],
+        "bad_weather": [
+          { "id": "car_indoor_walk", "title": "Indoor walk (mall, covered walkway, campus)", "minutes": 30, "effort": 2, "keeps": "Same aerobic work", "gives_up": "Fresh air", "steps": ["Covered route or air-conditioned mall loop"] },
+          { "id": "car_gym_cardio", "title": "Gym bike or treadmill", "minutes": 25, "effort": 3, "keeps": "Same aerobic work", "gives_up": "Being outdoors", "steps": ["Easy pace, conversational"] }
+        ],
+        "low_energy": [
+          { "id": "car_easy_walk", "title": "Easy 20-min walk", "minutes": 20, "effort": 1, "keeps": "Movement and the routine", "gives_up": "Some fitness stimulus", "steps": ["Slow, enjoyable pace"] },
+          { "id": "car_rest", "title": "Rest on purpose", "minutes": 0, "effort": 1, "keeps": "Energy for tomorrow", "gives_up": "Today's cardio", "steps": ["Earlier bedtime"], "is_rest": true }
+        ],
+        "default": [
+          { "id": "car_20_easy", "title": "20-min easy jog or walk", "minutes": 20, "effort": 2, "keeps": "Most of the aerobic benefit", "gives_up": "10 minutes", "steps": ["Conversational pace"] },
+          { "id": "car_10_brisk_d", "title": "10-min brisk walk", "minutes": 10, "effort": 1, "keeps": "The routine cue", "gives_up": "Most of the endurance work", "steps": ["Walk fast"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "walk",
+      "outcome": "Daily movement",
+      "options": {
+        "bad_weather": [
+          { "id": "walk_indoor", "title": "Indoor walking route", "minutes": 20, "effort": 2, "keeps": "Movement", "gives_up": "Fresh air and daylight", "steps": ["Covered walkway, mall or library floors"] },
+          { "id": "walk_mobility", "title": "10-min mobility in your room", "minutes": 10, "effort": 1, "keeps": "Some movement", "gives_up": "Steps", "steps": ["Hips, shoulders, spine; gentle"] }
+        ],
+        "no_time": [
+          { "id": "walk_far_hawker", "title": "Walk to a further food place for your next meal", "minutes": 10, "effort": 1, "keeps": "Steps without extra time", "gives_up": "Nothing much", "steps": ["Pick a place ~10 min away"] }
+        ],
+        "default": [
+          { "id": "walk_10", "title": "10-min walk", "minutes": 10, "effort": 1, "keeps": "Movement", "gives_up": "Duration", "steps": ["Any route"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "wind_down",
+      "outcome": "Protect tonight's sleep window",
+      "options": {
+        "home_late": [
+          { "id": "wd_quick", "title": "Quick wind-down (5 min)", "minutes": 5, "effort": 2, "keeps": "The sleep window", "gives_up": "The full routine", "steps": ["Phone on the desk charger", "Bag ready for tomorrow", "Lights low", "Bed"] },
+          { "id": "wd_straight_to_bed", "title": "Straight to bed", "minutes": 0, "effort": 1, "keeps": "As much sleep as possible", "gives_up": "Any routine", "steps": ["Phone away first"] }
+        ],
+        "scrolling_in_bed": [
+          { "id": "wd_phone_desk", "title": "Phone to the desk charger now", "minutes": 1, "effort": 2, "keeps": "Your sleep window", "gives_up": "The rest of the scroll", "steps": ["Plug it in across the room", "Alarm still works from there"] },
+          { "id": "wd_10_more", "title": "10 more minutes, then phone away", "minutes": 10, "effort": 1, "keeps": "Most of the sleep window", "gives_up": "10 minutes of sleep", "steps": ["Timer starts now"] }
+        ],
+        "craving_supper": [
+          { "id": "wd_planned_snack", "title": "Planned snack at home", "minutes": 5, "effort": 3, "keeps": "Sleep and money", "gives_up": "The supper outing", "steps": ["2 boiled eggs, milk, or tuna on toast"], "price_sgd": 0.80 },
+          { "id": "wd_wait_10", "title": "Wait 10 minutes", "minutes": 10, "effort": 2, "keeps": "Your choice, made calmly", "gives_up": "Nothing yet", "steps": ["Drink water", "Timer starts — then decide"], "is_wait": true },
+          { "id": "wd_supper_treat", "title": "Have supper — planned treat", "minutes": 30, "effort": 1, "keeps": "Enjoyment, guilt-free", "gives_up": "One of this week's 2 planned treats", "steps": ["Pick the lighter option (fish soup, egg prata)", "Back by bedtime"], "is_planned_treat": true }
+        ],
+        "stressed": [
+          { "id": "wd_brain_dump", "title": "2-min brain dump, then bed", "minutes": 5, "effort": 2, "keeps": "Sleep window and a calmer head", "gives_up": "Nothing", "steps": ["Write tomorrow's top 3 tasks on paper", "Phone away", "Slow breathing in bed"] },
+          { "id": "wd_quick_s", "title": "Quick wind-down", "minutes": 5, "effort": 1, "keeps": "The sleep window", "gives_up": "The full routine", "steps": ["Phone away, lights low, bed"] }
+        ],
+        "default": [
+          { "id": "wd_quick_d", "title": "Quick wind-down", "minutes": 5, "effort": 1, "keeps": "The sleep window", "gives_up": "The full routine", "steps": ["Phone away, bag ready, lights low, bed"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "meal",
+      "outcome": "A filling, decent-protein meal within budget",
+      "options": {
+        "no_kitchen": [
+          { "id": "meal_fish_soup", "title": "Fish soup + rice at a hawker", "minutes": 20, "effort": 3, "keeps": "Protein and a proper meal", "gives_up": "A few dollars vs cooking", "steps": ["Clear soup, extra veg"], "price_sgd": 5.50 },
+          { "id": "meal_econ_rice", "title": "Economical rice (fish/egg/tofu + 2 veg)", "minutes": 15, "effort": 2, "keeps": "Cheap balanced plate", "gives_up": "Some protein vs fish soup", "steps": ["Less rice, less gravy"], "price_sgd": 3.80 },
+          { "id": "meal_tuna_bread", "title": "Tuna on bread (no cooking)", "minutes": 5, "effort": 1, "keeps": "High protein, very cheap", "gives_up": "A hot meal", "steps": ["Tuna in water + 2 slices bread"], "price_sgd": 2.40 }
+        ],
+        "low_budget": [
+          { "id": "meal_eggs_rice_home", "title": "Eggs + rice + frozen veg at home", "minutes": 10, "effort": 2, "keeps": "Protein for under $1.50", "gives_up": "Eating out", "steps": ["Microwave rice, 2 eggs, veg"], "price_sgd": 1.30 },
+          { "id": "meal_econ_rice_b", "title": "Economical rice, 1 meat 2 veg", "minutes": 15, "effort": 2, "keeps": "A hot hawker meal", "gives_up": "Nothing much", "steps": ["Egg or tofu as the 'meat'"], "price_sgd": 3.50 }
+        ],
+        "craving_delivery": [
+          { "id": "meal_walk_hawker", "title": "Walk to the nearest hawker instead", "minutes": 20, "effort": 3, "keeps": "Hot food you like, plus steps", "gives_up": "Staying in", "steps": ["Pick the closest place", "Fish soup or chicken rice"], "price_sgd": 5.00 },
+          { "id": "meal_wait_10", "title": "Wait 10 minutes", "minutes": 10, "effort": 2, "keeps": "Your choice, made calmly", "gives_up": "Nothing yet", "steps": ["Drink water", "Timer starts — then decide"], "is_wait": true },
+          { "id": "meal_delivery_treat", "title": "Order it — planned treat", "minutes": 40, "effort": 1, "keeps": "Comfort when you need it", "gives_up": "One of this week's 2 planned treats", "steps": ["Pick a meal with protein", "Skip the add-on drink"], "is_planned_treat": true }
+        ],
+        "social_plans": [
+          { "id": "meal_social_smart", "title": "Go — order the protein-first option", "minutes": 60, "effort": 2, "keeps": "Friends and a decent meal", "gives_up": "Exact control", "steps": ["Protein + veg first", "Water or kopi-O kosong"] }
+        ],
+        "low_energy": [
+          { "id": "meal_nearest_simple", "title": "Nearest simple option", "minutes": 10, "effort": 1, "keeps": "Getting fed with no effort", "gives_up": "Choosing the best fit", "steps": ["Closest stall, any protein"] }
+        ],
+        "default": [
+          { "id": "meal_open_eat", "title": "Open 'What should I eat?'", "minutes": 1, "effort": 2, "keeps": "A fitting, cheap option", "gives_up": "Nothing", "steps": ["3 picks under your max price"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "afternoon_break",
+      "outcome": "Get through the afternoon slump",
+      "options": {
+        "craving_sweet_drink": [
+          { "id": "aft_light_milk_tea", "title": "0–25% sugar, no pearls", "minutes": 10, "effort": 3, "keeps": "The treat feeling", "gives_up": "About two-thirds of the calories", "steps": ["Order less sweet, no pearls"], "price_sgd": 4.00 },
+          { "id": "aft_kopi_o", "title": "Kopi-O kosong or teh-O kosong", "minutes": 5, "effort": 2, "keeps": "A pick-me-up for ~$1.30", "gives_up": "Sweetness", "steps": ["Check the caffeine cutoff first"], "price_sgd": 1.30 },
+          { "id": "aft_wait_10", "title": "Wait 10 minutes", "minutes": 10, "effort": 1, "keeps": "Your choice, made calmly", "gives_up": "Nothing yet", "steps": ["Water + 5-min walk", "Then decide"], "is_wait": true },
+          { "id": "aft_bbt_treat", "title": "Get the bubble tea — planned treat", "minutes": 10, "effort": 1, "keeps": "Enjoyment, guilt-free", "gives_up": "One of this week's 2 planned treats", "steps": ["Enjoy it"], "is_planned_treat": true, "price_sgd": 5.00 }
+        ],
+        "low_energy": [
+          { "id": "aft_walk_daylight", "title": "5-min walk outside", "minutes": 5, "effort": 2, "keeps": "Energy boost without caffeine", "gives_up": "Nothing", "steps": ["Shade if it's hot"] },
+          { "id": "aft_power_nap", "title": "20-min power nap (before 4 pm)", "minutes": 20, "effort": 1, "keeps": "Alertness", "gives_up": "20 minutes", "steps": ["Set an alarm for 20 min"] }
+        ],
+        "default": [
+          { "id": "aft_water_walk", "title": "Water + short walk", "minutes": 5, "effort": 1, "keeps": "A reset", "gives_up": "Nothing", "steps": ["Refill bottle, walk a loop"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "study_block",
+      "outcome": "Focused study without wrecking energy or sleep",
+      "options": {
+        "low_energy": [
+          { "id": "study_25_5", "title": "25 min on, 5 min walk", "minutes": 30, "effort": 2, "keeps": "Progress", "gives_up": "Long unbroken focus", "steps": ["Timer for 25 min", "Stand and walk for 5"] },
+          { "id": "study_easy_tasks", "title": "Do the easy tasks first", "minutes": 30, "effort": 1, "keeps": "Momentum", "gives_up": "The hardest work for now", "steps": ["Admin, notes, readings"] }
+        ],
+        "stressed": [
+          { "id": "study_reset", "title": "2-min reset, then start", "minutes": 2, "effort": 2, "keeps": "Calmer focus", "gives_up": "2 minutes", "steps": ["Slow breathing: in 4, out 6, for 2 minutes", "Write the single next step"] }
+        ],
+        "default": [
+          { "id": "study_break", "title": "Movement break every 60–90 min", "minutes": 3, "effort": 1, "keeps": "Focus and less stiffness", "gives_up": "Nothing", "steps": ["Stand, stretch or walk"] }
+        ]
+      }
+    },
+    {
+      "plan_type": "morning_daylight",
+      "outcome": "Morning light for your body clock",
+      "options": {
+        "bad_weather": [
+          { "id": "day_window", "title": "Breakfast by a bright window", "minutes": 10, "effort": 1, "keeps": "Some morning light", "gives_up": "Outdoor light (stronger)", "steps": ["Sit near the brightest window"] }
+        ],
+        "no_time": [
+          { "id": "day_walk_to_class", "title": "Walk the outdoor route to class", "minutes": 10, "effort": 1, "keeps": "Daylight with no extra time", "gives_up": "Nothing", "steps": ["Skip the covered shortcut if it's not raining"] }
+        ],
+        "default": [
+          { "id": "day_10_outside", "title": "10 min outside", "minutes": 10, "effort": 1, "keeps": "Morning light", "gives_up": "Nothing", "steps": ["Never look directly at the sun"] }
+        ]
+      }
+    }
+  ]
+}
