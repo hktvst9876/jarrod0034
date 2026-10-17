@@ -39,11 +39,11 @@ for path in swift_files:
     if not is_test:
         check(not re.search(r"\b(?:print|fatalError)\s*\(", source), f"Debug/crash call: {name}")
         check(not re.search(r"\bimport\s+(?:Firebase|Alamofire|OpenAI|Anthropic)\b", source), f"Third-party app dependency: {name}")
-        check(not re.search(r"\bURLSession\b", source), f"Unexpected Phase 1 network client: {name}")
+        check(not re.search(r"\bURLSession\b", source), f"Unexpected network client in the local planner: {name}")
         check(not re.search(r"\b(?:try|as)!(?:\s|\b)", source), f"Force operation: {name}")
     check("\ufffd" not in source, f"Replacement character in source: {name}")
 
-for filename in ("foods.json", "alternatives.json"):
+for filename in ("foods.json", "alternatives.json", "plan-alternatives.json"):
     fixture = ROOT / "docs/seed" / filename
     check(fixture.is_file(), f"Missing seed fixture: {filename}")
     if fixture.is_file():
@@ -59,6 +59,37 @@ for filename in ("foods.json", "alternatives.json"):
                 check(json.loads(target.read_text(encoding="utf-8-sig")) == fixture_data, f"Resource differs from fixture: {filename}")
             except (ValueError, UnicodeError) as error:
                 errors.append(f"Invalid app resource {filename}: {error}")
+        test_target = ROOT / "Packages/SteadyCore/Tests/SteadyCoreTests/Resources" / filename
+        check(test_target.is_file(), f"Missing package test resource: {filename}")
+        if test_target.is_file():
+            check(json.loads(test_target.read_text(encoding="utf-8-sig")) == fixture_data,
+                  f"Test resource differs from fixture: {filename}")
+
+catalog_path = ROOT / "docs/seed/plan-alternatives.json"
+if catalog_path.is_file():
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8-sig"))
+    check(catalog.get("version") == 1, "Unsupported production alternative catalog version")
+    templates = catalog.get("templates", [])
+    check(bool(templates), "Production alternative catalog is empty")
+    check(len({item.get("id") for item in templates}) == len(templates), "Duplicate template IDs")
+    for template in templates:
+        label = template.get("id", "unnamed template")
+        options = template.get("options", [])
+        check(2 <= len(options) <= 3, f"Alternative count outside 2-3: {label}")
+        check(len({option.get("effort") for option in options}) == len(options), f"Repeated effort: {label}")
+        expected_parts = None
+        for option in options:
+            option_id = option.get("id", "unnamed option")
+            kept = set(option.get("preserves", []))
+            lost = set(option.get("doesNotPreserve", []))
+            check(not kept.intersection(lost), f"Overlapping outcome claims: {option_id}")
+            if expected_parts is None:
+                expected_parts = kept.union(lost)
+            check(kept.union(lost) == expected_parts, f"Inconsistent outcome partition: {option_id}")
+            check(option.get("minutes", 0) > 0, f"Rest/defer padded into primary options: {option_id}")
+            for key in ("title", "benefitKept", "tradeoff"):
+                check(bool(option.get(key, "").strip()), f"Missing {key}: {option_id}")
+            check(bool(option.get("steps")), f"Missing steps: {option_id}")
 
 if errors:
     print("Static checks found issues:")

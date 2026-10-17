@@ -3,9 +3,9 @@ import Foundation
 import SteadyCore
 
 actor EventKitProvider: CalendarProviding {
-    private let store: EKEventStore
-    private let steadyCalendarName = "Steady"
-    private let calendarIdentifierKey = "steady.calendar.identifier"
+    let store: EKEventStore
+    let steadyCalendarName = "Steady"
+    let calendarIdentifierKey = "steady.calendar.identifier"
 
     init(store: EKEventStore = EKEventStore()) {
         self.store = store
@@ -30,14 +30,17 @@ actor EventKitProvider: CalendarProviding {
     func busyIntervals(in range: DateRange) throws -> [BusyInterval] {
         try requireFullAccess()
         return events(in: range)
-            .filter { !$0.isAllDay && $0.calendar.title != steadyCalendarName }
+            .filter {
+                !$0.isAllDay && $0.status != .canceled
+                    && $0.calendar.title != steadyCalendarName
+            }
             .map { BusyInterval(start: $0.startDate, end: $0.endDate) }
     }
 
     func commitments(in range: DateRange) throws -> [CalendarCommitment] {
         try requireFullAccess()
         return events(in: range)
-            .filter { $0.calendar.title != steadyCalendarName }
+            .filter { $0.status != .canceled && $0.calendar.title != steadyCalendarName }
             .map {
                 CalendarCommitment(
                     id: $0.eventIdentifier ?? UUID().uuidString,
@@ -49,19 +52,29 @@ actor EventKitProvider: CalendarProviding {
             }
     }
 
+    func reschedulingBusyIntervals(in range: DateRange, excluding eventIdentifier: String?) throws -> [BusyInterval] {
+        try requireFullAccess()
+        return events(in: range).filter {
+            !$0.isAllDay && $0.status != .canceled
+                && (eventIdentifier == nil || $0.eventIdentifier != eventIdentifier)
+        }.map { BusyInterval(start: $0.startDate, end: $0.endDate) }
+    }
+
     func write(_ confirmed: UserConfirmedCalendarWrite) throws -> String {
         try requireFullAccess()
-        guard !confirmed.proposal.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              confirmed.proposal.end > confirmed.proposal.start else {
-            throw CalendarServiceError.invalidProposal
-        }
-        let calendar = try steadyCalendar()
-        let event = EKEvent(eventStore: store)
+        let proposal = confirmed.proposal
+        try validateProposal(proposal)
+        if let savedID = try completedOperation(proposal) { return savedID }
+        let existingEvent = try trackedEvent(identifier: proposal.existingEventIdentifier)
+        try validateLatestAvailability(proposal, excluding: existingEvent?.eventIdentifier)
+        let calendar = try existingEvent?.calendar ?? steadyCalendar()
+        let event = existingEvent ?? EKEvent(eventStore: store)
         event.calendar = calendar
-        event.title = confirmed.proposal.title
-        event.startDate = confirmed.proposal.start
-        event.endDate = confirmed.proposal.end
-        event.notes = confirmed.proposal.notes
+        event.title = proposal.title
+        event.startDate = proposal.start
+        event.endDate = proposal.end
+        event.notes = proposal.notes
+        event.url = operationURL(proposal.operationID)
 
         do {
             try store.save(event, span: .thisEvent, commit: true)
@@ -71,7 +84,16 @@ actor EventKitProvider: CalendarProviding {
         guard let identifier = event.eventIdentifier else {
             throw CalendarServiceError.saveFailed
         }
+        UserDefaults.standard.set(identifier, forKey: operationKey(proposal.operationID))
         return identifier
+    }
+
+    func eventState(identifier: String) -> CalendarEventState {
+        guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else {
+            return .unavailable
+        }
+        guard let event = store.event(withIdentifier: identifier) else { return .missing }
+        return isOwned(event) ? .exists : .unavailable
     }
 
     private func events(in range: DateRange) -> [EKEvent] {

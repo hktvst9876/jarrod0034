@@ -20,7 +20,7 @@ final class AppEnvironment {
         self.liveHealth = liveHealth
         self.sampleHealth = SampleHealthProvider(now: clock.now)
         self.liveCalendar = liveCalendar
-        self.sampleCalendar = SampleCalendarProvider(now: clock.now)
+        self.sampleCalendar = SampleCalendarProvider(clock: clock)
     }
 
     var now: Date { clock.now }

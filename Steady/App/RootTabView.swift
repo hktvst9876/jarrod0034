@@ -2,13 +2,15 @@ import SwiftUI
 
 struct RootTabView: View {
     let profile: ProfileRecord
+    @State private var todayModel = TodayViewModel()
+    @State private var planStore = PlanStore()
 
     var body: some View {
         TabView {
-            TodayView(profile: profile)
+            TodayView(profile: profile, model: todayModel)
                 .tabItem { Label("Today", systemImage: "sun.max") }
 
-            MoveView()
+            MoveView(profile: profile, todayModel: todayModel)
                 .tabItem { Label("Move", systemImage: "figure.walk") }
 
             SleepView(profile: profile)
@@ -21,6 +23,7 @@ struct RootTabView: View {
                 .tabItem { Label("Week", systemImage: "calendar") }
         }
         .tint(.teal)
+        .environment(planStore)
     }
 }
 

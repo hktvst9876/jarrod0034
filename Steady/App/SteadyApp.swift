@@ -7,7 +7,7 @@ struct SteadyApp: App {
     private let modelContainerResult: Result<ModelContainer, Error>
 
     init() {
-        modelContainerResult = Result { try ModelContainer(for: ProfileRecord.self) }
+        modelContainerResult = Result { try ModelContainer(for: ProfileRecord.self, PlanRecord.self, ChoiceRecord.self) }
     }
 
     var body: some Scene {
@@ -16,6 +16,8 @@ struct SteadyApp: App {
             case .success(let modelContainer):
                 AppLaunchView()
                     .environment(environment)
+                    .environment(\.calendar, environment.calendar)
+                    .environment(\.timeZone, environment.calendar.timeZone)
                     .modelContainer(modelContainer)
             case .failure:
                 DataStoreErrorView()

@@ -3,26 +3,34 @@ import SwiftData
 import SwiftUI
 
 struct TodayView: View {
-    @Environment(AppEnvironment.self) private var environment
-    @Environment(\.modelContext) private var modelContext
+    @Environment(AppEnvironment.self) var environment
+    @Environment(\.modelContext) var modelContext
+    @Environment(PlanStore.self) var planStore
+    @Environment(\.scenePhase) var scenePhase
     let profile: ProfileRecord
-    @State private var model = TodayViewModel()
-    @State private var why: WhyItem?
-    @State private var showSettings = false
-    @State private var showSafetyChoices = false
-    @State private var showPriorityChoices = false
-    @State private var saveError: String?
-    @AppStorage("useSampleData") private var useSampleData = false
+    @Bindable var model: TodayViewModel
+    @State var why: WhyItem?
+    @State var showSettings = false
+    @State var showSafetyChoices = false
+    @State var showPriorityChoices = false
+    @State var saveError: String?
+    @State var showAlternatives = false
+    @State var showClearCalendarRetry = false
+    @State var pendingRetryOperationID: String?
+    @AppStorage("useSampleData") var useSampleData = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     if model.isLoading && model.priority == nil {
-                        ProgressView("Building a calm plan…")
+                        ProgressView("Building a calm plan...")
                             .padding(.top, 80)
                     } else {
                         priorityCard
+                        pendingCalendarRecovery
+                        if let message = planStore.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
+                        if let failure = planStore.failure { Text(failure).foregroundStyle(.red) }
                         contextCards
                         fallbackCard
                         safetyButton
@@ -39,6 +47,7 @@ struct TodayView: View {
             .refreshable { await reload() }
         }
         .task(id: useSampleData) { await reload() }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await reload() } } }
         .sheet(isPresented: $showSettings, onDismiss: { Task { await reload() } }) {
             NavigationStack { SettingsView(profile: profile) }
         }
@@ -52,7 +61,17 @@ struct TodayView: View {
         .sheet(isPresented: $showPriorityChoices) {
             PriorityPickerSheet { kind in
                 model.choosePriority(kind, profile: profile, now: environment.now, calendar: environment.calendar)
+                planStore.suggestedPlan = model.priority?.planA
+                if let priority = model.priority {
+                    Task { await planStore.replacePriority(priority.planA, profile: profile, sample: useSampleData,
+                        environment: environment, context: modelContext) }
+                }
                 showPriorityChoices = false
+            }
+        }
+        .sheet(isPresented: $showAlternatives) {
+            if let source = planStore.effectivePlan(priority: model.priority) {
+                AlternativesView(profile: profile, source: source, snapshot: model.snapshot)
             }
         }
         .confirmationDialog("Pause exercise advice for today?", isPresented: $showSafetyChoices) {
@@ -72,45 +91,9 @@ struct TodayView: View {
         }
     }
 
-    @ViewBuilder
-    private var priorityCard: some View {
-        if let priority = model.priority {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("TODAY'S PRIORITY").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                Text(priority.title).font(.title2.bold())
-                Text(priority.explanation.summary).foregroundStyle(.secondary)
-                Divider()
-                Label(priority.planA.title, systemImage: "arrow.right.circle.fill").font(.headline)
-                if priority.planA.minutes > 0 {
-                    Button("About \(priority.planA.minutes) minutes - Why") {
-                        why = WhyItem(
-                            title: "Why this amount",
-                            explanation: "This is the useful version chosen by today's priority rule. You can choose another priority at any time."
-                        )
-                    }
-                    .font(.subheadline)
-                }
-                if let slot = priority.planA.slot {
-                    Button("Proposed time: \(slot.start.formatted(date: .omitted, time: .shortened)) - Why") {
-                        why = WhyItem(
-                            title: "Proposed time",
-                            explanation: "This time fits a free window without using the part of the evening protected for sleep. It has not been added to Calendar."
-                        )
-                    }
-                    .font(.subheadline)
-                }
-                Button("Why this priority") {
-                    why = WhyItem(title: priority.title, explanation: priority.explanation.summary)
-                }
-                Button("Choose another priority") { showPriorityChoices = true }
-                    .buttonStyle(.bordered)
-            }
-            .steadyCard()
-        }
-    }
 
     @ViewBuilder
-    private var contextCards: some View {
+    var contextCards: some View {
         if let snapshot = model.snapshot {
             TodaySleepCard(sleep: snapshot.sleep, why: $why) {
                 model.ignoreSleepForPriority = true
@@ -129,7 +112,7 @@ struct TodayView: View {
     }
 
     @ViewBuilder
-    private var fallbackCard: some View {
+    var fallbackCard: some View {
         if model.snapshot?.availability.source == .unknown
             || model.snapshot?.availability.source == .manualMinutes {
             VStack(alignment: .leading, spacing: 10) {
@@ -154,7 +137,7 @@ struct TodayView: View {
         }
     }
 
-    private var safetyButton: some View {
+    var safetyButton: some View {
         Button {
             showSafetyChoices = true
         } label: {
@@ -165,39 +148,12 @@ struct TodayView: View {
         .tint(.primary)
     }
 
-    private var greeting: String {
+    var greeting: String {
         profile.name.isEmpty ? "Today" : "Hi, \(profile.name)"
     }
 
-    private func reload() async {
-        await model.load(profile: profile, environment: environment, useSampleData: useSampleData)
-    }
 
-    private func saveCheckIn(_ checkIn: CheckIn) {
-        profile.lastMorningCheckInAt = environment.now
-        profile.lastMorningCheckInRawValue = checkIn.rawValue
-        do {
-            try modelContext.save()
-            model.showMorningCheckIn = false
-            model.updatePriority(profile: profile, now: environment.now, calendar: environment.calendar)
-        } catch {
-            modelContext.rollback()
-            saveError = error.localizedDescription
-        }
-    }
-
-    private func saveSymptom(_ symptom: Symptom) {
-        profile.reportedSafetySymptomAt = environment.now
-        profile.reportedSafetySymptomRawValue = symptom.rawValue
-        do {
-            try modelContext.save()
-        } catch {
-            saveError = error.localizedDescription
-        }
-        model.report(symptom, profile: profile, now: environment.now, calendar: environment.calendar)
-    }
-
-    private var saveErrorIsPresented: Binding<Bool> {
+    var saveErrorIsPresented: Binding<Bool> {
         Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })
     }
 }

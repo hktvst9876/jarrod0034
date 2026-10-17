@@ -14,10 +14,19 @@ final class TodayViewModel {
     var userSelectedPriority: PriorityKind?
     var reportedSymptoms: [Symptom] = []
     private var lastLoadedDay: Date?
+    private var loadRequestID = UUID()
+    private var loadedSampleMode: Bool?
 
-    func load(profile record: ProfileRecord, environment: AppEnvironment, useSampleData: Bool) async {
-        guard let profile = record.domainProfile() else { return }
+    func load(profile record: ProfileRecord, environment: AppEnvironment, useSampleData: Bool,
+              requestIsCurrent: () -> Bool = { true }) async -> Bool {
+        guard let profile = record.domainProfile() else { return false }
+        let requestID = UUID()
+        loadRequestID = requestID
         let loadedDay = environment.calendar.startOfDay(for: environment.now)
+        if loadedSampleMode != useSampleData || lastLoadedDay != loadedDay {
+            snapshot = nil
+            priority = nil
+        }
         if lastLoadedDay != loadedDay {
             ignoreSleepForPriority = false
             manualFreeMinutes = nil
@@ -26,6 +35,7 @@ final class TodayViewModel {
         }
         lastLoadedDay = loadedDay
         isLoading = true
+        defer { if loadRequestID == requestID { isLoading = false } }
         let loader = PhaseOneContextLoader(
             health: environment.health(useSampleData: useSampleData),
             calendarProvider: environment.calendar(useSampleData: useSampleData),
@@ -37,7 +47,11 @@ final class TodayViewModel {
             ignoreLastNightSleep: ignoreSleepForPriority,
             manualFreeMinutes: manualFreeMinutes
         )
+        guard loadRequestID == requestID, !Task.isCancelled, requestIsCurrent(),
+              record.domainProfile() == profile,
+              environment.calendar.startOfDay(for: environment.now) == loadedDay else { return false }
         snapshot = loaded
+        loadedSampleMode = useSampleData
         priority = makePriority(
             snapshot: loaded,
             profile: profile,
@@ -46,7 +60,7 @@ final class TodayViewModel {
             calendar: environment.calendar
         )
         showMorningCheckIn = shouldOfferCheckIn(record: record, profile: profile, now: environment.now, calendar: environment.calendar)
-        isLoading = false
+        return true
     }
 
     func updatePriority(profile record: ProfileRecord, now: Date, calendar: Calendar) {

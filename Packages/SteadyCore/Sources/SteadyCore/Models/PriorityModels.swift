@@ -106,7 +106,7 @@ public struct PlanItem: Identifiable, Codable, Equatable, Sendable {
             )
         }
 
-        PlanItem(
+        return PlanItem(
             id: id + "-condensed",
             day: day,
             type: type,

@@ -1,8 +1,8 @@
 # Steady release 1 product specification
 
-Version: 1.1
-Date: 2026-10-16
-Status: Approved scope; Phase 1 implementation in progress
+Version: 1.2
+Date: 2026-10-17
+Status: Approved scope; Phase 2 source prepared and static/syntax checks passed; Phase 1/2 Mac verification pending
 
 This specification supersedes conflicting scope in the original starter. `docs/MILESTONES.md` controls delivery order, and `docs/DECISIONS.md` records replacements without erasing history.
 
@@ -220,7 +220,7 @@ Low-data mode may use sleep context internally but hides sensitive numeric detai
 
 ### 6.4 Calendar availability
 
-Ignore all-day events and events in the Steady-owned calendar when calculating availability.
+Ignore cancelled events, all-day events, and events in the Steady-owned calendar when calculating availability. Recheck uncancelled timed conflicts immediately before a confirmed write; ignore only the tracked event being rescheduled, not unrelated events in Steady's calendar.
 
 ```text
 day window = max(wake + 60 minutes, 07:00) through bedtime - 150 minutes
@@ -354,7 +354,25 @@ preserved intersection not-preserved = empty
 effort levels are meaningfully distinct when multiple options are shown
 ```
 
+Phase 2's typed production catalog is `plan-alternatives.json`, mirrored in app resources and core test fixtures. The original `alternatives.json` remains a legacy fixture for history; its old price and outcome claims are not promoted into production choices. If the typed catalog is missing or fails validation, use the deterministic built-in fallback. Food evidence and a claim of nourishment belong to Phase 5; a preparation, pause, or movement option must state that it does not preserve nourishment.
+
+The two-to-three invariant applies to a successful option set. If current safety rules block recommendations, or fewer than two suitable choices fit the user's explicit time/movement restrictions, return a typed blocked/unavailable result rather than adding unsuitable filler. Later and Rest remain separate actions; time below two minutes is an unavailable option set, not an invented pair of useful actions.
+
 Choose, Later, and Rest on purpose are separate user actions. They are not padded into the primary option count. Deferring creates an inert calendar proposal and opens the confirmation flow in section 10.
+
+### Phase 2 action and persistence rules
+
+- The barrier is an explicit user selection, not an inferred emotion, injury, or diagnosis.
+- **Choose** replaces the active app-owned plan. It does not imply that the action was completed and does not write to Calendar.
+- **Rest on purpose** records an intentional-rest choice separately from a completed workout. It does not create a calendar event.
+- **Later** prepares a proposed time. Cancelling or dismissing its confirmation writes nothing and preserves the prior plan.
+- Calendar denial must not block choosing an alternative or resting. A denied write leaves the plan usable in the app and never claims it was scheduled.
+- An accepted choice, intentional-rest state, or confirmed deferred plan survives a relaunch for its local day. Transient sheets and unconfirmed proposals do not silently resume as writes.
+- An action from an open sheet must still belong to the current profile, active plan, and local day. Reject or refresh a captured source after a day rollover, profile change, or priority replacement rather than mutating the newly active plan.
+- A confirmed tomorrow plan may carry into its scheduled local day when no separate plan exists for that day. Preserve its scheduled-day association after Start, completion, or another status change so a relaunch still finds the same chosen plan. If carryover creates a current-day row, atomically supersede the prior active row and transfer event/retry ownership rather than leaving two active owners. A future deferred plan cannot be started or completed before its saved time; when due, Start makes it active and completion remains a separate explicit action.
+- A stored calendar event identifier tracks only a Steady-owned event. If the event is missing after an external deletion, mark the plan unscheduled and do not offer to recreate that deleted event in the current plan's Later flow. A separate new-plan scheduling action may be added in a later phase.
+- SafetyGate is evaluated again before accepting an alternative or confirming a deferral. A newly reported symptom invalidates a performance proposal; restarting the app must not restore it over an active safety state.
+- The Alternatives sheet has an explicit standing/seated/wheelchair mode selector and typed avoided-movement choices. These are request-local in Phase 2, not new persisted profile fields. A saved free-text movement note is shown to the user for explicit selection rather than interpreted as an injury. Phase 2 does not add advanced training progression.
 
 ## 8. Phase 3: Daily Foundations and notifications
 
@@ -421,6 +439,11 @@ If on-device model availability or validation fails, return the template result.
 - Write or reschedule only after the user taps Confirm.
 - Save the returned event identifier.
 - If the user deletes the event, mark the plan unscheduled and do not recreate it automatically.
+- On rescheduling, update only the event whose stored identifier still resolves to the Steady-owned calendar. Do not modify an unrelated event merely because its title matches.
+- Cancellation, dismissal, app refresh, and app relaunch never invoke the confirmed-write handler.
+- Recheck proposal validity, current access, and current safety state at the confirmation boundary. Display a failure or denied state honestly rather than persisting an unconfirmed schedule.
+- If a confirmed write may have reached Calendar before local persistence failed, retain only the exact minimal retry proposal. Relaunch does not retry automatically: show that same title/time for review and require another Confirm. A definitive access denial must not strand Choose/Rest behind a pending write. Clearing an uncertain retry requires an explicit explanation that an event may already exist and does not delete that event.
+- A newly reviewed change receives a new operation identifier, even when revisiting a previously used time. Retrying the exact uncertain change keeps its existing identifier. This permits confirmed A-to-B-to-A rescheduling while making retries idempotent.
 - Advisor/model output can never trigger the write handler.
 
 ## 11. Phase 5: Live food

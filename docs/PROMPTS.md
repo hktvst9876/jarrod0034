@@ -47,8 +47,10 @@ not "Phase 1 complete".
 ```text
 Read AGENTS.md, README.md, docs/SPEC.md, docs/MILESTONES.md, and docs/DECISIONS.md.
 
-Confirm that the prior phase is accepted. Then build the first phase marked Not started,
-and build only that phase. If the prior phase is not accepted, stop and report the exact gate.
+Check the prior phase's evidence and the user's current authorisation. Build only the
+named authorised phase. An explicit request may authorise source work before earlier
+Mac gates pass; record that decision without marking those gates accepted. If no phase
+is named and no such authorisation exists, continue the current phase's pending work.
 
 Order of work:
 1. SteadyCore models, deterministic rules, invariants, and unit tests.
@@ -66,7 +68,30 @@ Finish with what changed, exact test/build results, beginner device-test steps,
 remaining Xcode clicks, and a commit message. Then stop for review.
 ```
 
-To request a specific phase, replace "the first phase marked Not started" with, for example, `Phase 3 - Daily Foundations`.
+To request a specific phase, name it explicitly, for example, `Phase 3 - Daily Foundations`. The current authorisation covers Phase 2 only.
+
+### Continue and verify Phase 2
+
+```text
+Continue Steady Phase 2 - Alternatives only. D26 records the user's authorisation;
+Phase 1 Mac verification remains pending and is not silently accepted.
+
+Read AGENTS.md, README.md, docs/SPEC.md, docs/MILESTONES.md, and docs/DECISIONS.md.
+Inspect the existing Phase 2 implementation before changing it. Preserve working code.
+Verify outcome partitions, distinct effort, deterministic fallback, selected barriers,
+basic movement substitutions, and SafetyGate before selection and confirmation.
+Verify Choose and Rest on purpose survive relaunch without a calendar write.
+Verify Later creates only a proposal: cancel/dismiss writes nothing, Confirm writes only
+to a tracked Steady-owned event, denied access remains usable, and an externally deleted
+event becomes unscheduled without being recreated after refresh or relaunch.
+Check both sample behavior and real EventKit behavior; a sample event is not device evidence.
+Run scripts/check_source.py and available meaningful core tests. On a Mac run
+bash scripts/verify-mac.sh, then the README's Phase 2 physical-device acceptance steps.
+Record exact command results, warnings, and unrun gates in README.md and MILESTONES.md.
+Do not mark either phase complete without its recorded Apple-platform/device evidence.
+Stop before Phase 3. Finish with changes, exact verification, pending Xcode/device steps,
+and a suggested commit message.
+```
 
 ## 3. Diagnose a problem
 

@@ -4,11 +4,13 @@ Steady is a private, local-first iPhone and Apple Watch wellness app for one col
 
 ## Current status
 
-**Phase 1 - Foundation: source implementation and checks in progress.**
+**Phase 2 - Alternatives: source prepared; static and syntax checks passed; Mac verification pending.**
 
-The repository is being prepared with a Foundation-only `SteadyCore` package, iPhone source folders, protocol-backed HealthKit and EventKit services, local persistence, and a Watch placeholder. This is not yet a completed phase: the Xcode project must be generated on a Mac, package and targets must be linked in Xcode, tests and simulator builds must pass, and the real-device checks below must be completed.
+Phase 1 Foundation source is present: a Foundation-only `SteadyCore` package, onboarding, Today/Sleep/Settings, protocol-backed HealthKit and Calendar services, local profile persistence, and a Watch placeholder. Phase 1 Mac integration, simulator builds, and physical-device acceptance are still pending.
 
-Do not mark Phase 1 complete from a Windows source review alone. The authoritative checklist is [docs/MILESTONES.md](docs/MILESTONES.md).
+The user expressly requested Phase 2 on 17 October 2026 after the outstanding gates were disclosed. Alternatives source work is therefore authorised, without treating Phase 1 as verified or starting Phase 3. Phase 2 adds explicit outcomes, user-selected barriers, distinct alternatives, Choose/Later/Rest actions, local plan persistence, and an explicit calendar confirmation boundary.
+
+Neither phase is accepted from a Windows source review alone. On 17 October 2026, `scripts/check_source.py` passed using the configured Python interpreter for 103 Swift files, including 14 test files. A separate tree-sitter syntax audit parsed all 103 without error/missing nodes, and `git diff --check` passed. There are 95 written `@Test` declarations: 56 existing and 39 added for Phase 2 (26 alternatives and 13 rescheduling). No Swift tests were executed: Swift and `xcodebuild` are unavailable on this Windows host. No Xcode project, simulator build, or physical-device verification is claimed. Phase 3 has not started. The authoritative evidence and pending gates are in [docs/MILESTONES.md](docs/MILESTONES.md).
 
 ## Approved release-1 boundaries
 
@@ -23,7 +25,7 @@ Do not mark Phase 1 complete from a Windows source review alone. The authoritati
 
 ```text
 Steady/
-|-- Packages/SteadyCore/       Foundation-only rules and tests
+|-- Packages/SteadyCore/       Foundation-only rules, alternatives, scheduling, and tests
 |-- Steady/                    iPhone target sources
 |   |-- App/
 |   |-- Features/
@@ -139,7 +141,7 @@ Select the Watch target > **Info** and add:
 
 The source names behind the Xcode labels are `NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`, `NSCalendarsFullAccessUsageDescription`, and later `NSLocationWhenInUseUsageDescription`.
 
-### 7. Verify Phase 1 on the Mac
+### 7. Verify the shared core and both apps on the Mac
 
 In Terminal, from `~/Developer/Steady`, run:
 
@@ -165,6 +167,33 @@ If your installed simulator names differ, copy exact names from the `simctl` out
 7. Select the Watch scheme, choose the paired Watch, and press Run. Confirm the Steady placeholder/glance launches.
 
 Record the exact Xcode version, simulator destinations, test output, and device observations in `docs/MILESTONES.md`. Only then may Phase 1 be marked complete.
+
+### 9. Phase 2 physical-device acceptance
+
+Complete the Xcode setup above first. Keep a separate record of each result in the Phase 2 Evidence section of `docs/MILESTONES.md`. Sample-mode results do not prove that real EventKit access or writes work.
+
+For independent cases after intentional rest/completion, use **Choose another priority** to select a fresh movement plan. Keep the same plan throughout the confirmed creation, reschedule, and external-deletion checks so event identity can be verified.
+
+1. **Options and explanations:** enable **Use Sample Data**, open Today, select a movement priority when no safety flag is active, then tap **Find another option**. The Move tab also opens the flow with **Shorter or different**. Select barriers such as no time, low energy, or bad weather. Expect two or three primary choices with different effort levels. Each shows duration and its explanation, benefit kept, tradeoff, steps, and the outcome parts kept or omitted. **Choose this**, **Later**, and **Rest on purpose** remain separate actions.
+2. **Choose without Calendar:** choose a smaller alternative. Return to Today, refresh, force-quit, and reopen during the same Singapore local day. Expect the chosen app plan to remain, without being marked completed and without a calendar event. Repeat with low-data mode enabled; the alternatives must remain usable without exposing hidden recovery or calorie details.
+3. **Rest on purpose:** select **Rest on purpose** and repeat the same-day refresh/relaunch. Expect intentional rest to remain an explicit choice, with no workout completion and no calendar write.
+4. **Cancel or dismiss Later:** select **Later**, pick a valid future time, and inspect the proposal sheet. Check the title, date, start, end, and reason. Tap **Cancel**, then repeat by dismissing the sheet. Inspect Apple Calendar and reopen Steady: no event was created or moved, and the prior active plan remains.
+5. **Confirmed creation:** turn sample data off, grant Calendar full access when explained, and choose **Later** again. Before confirming, verify there is no new event. Tap **Confirm** once. Expect exactly one event in Steady's own calendar and a scheduled plan in Today. Refresh and reopen: no duplicate event appears.
+6. **Confirmed reschedule and ownership:** propose a different future time for that scheduled plan. Cancel once and verify the event is unchanged; confirm a new proposal and verify the same tracked Steady-owned event moves rather than creating a duplicate. Then move from time A to B and back to A: each separately reviewed confirmation must work, without being mistaken for an old retry. An unrelated event with a matching title must remain untouched.
+7. **Denied Calendar:** in iPhone **Settings > Apps > Steady > Calendars** (or **Settings > Privacy & Security > Calendars**), deny access. Reopen Steady and try **Later**. Expect the **Keep for later without Calendar** manual action, no claimed successful schedule, and no calendar write. **Choose this** and **Rest on purpose** must remain available. Save for later manually and relaunch: its app-only deferred state remains. Restoring access must not replay a cancelled or denied proposal automatically.
+8. **Externally deleted event:** with a confirmed event present, delete it in Apple Calendar. Return to Steady, refresh, force-quit, and reopen. Expect the plan to become unscheduled; refresh and relaunch must never recreate the event. Its Later flow must explain that the event was removed and leave it unscheduled. Creating a separate new plan after deletion is later scope.
+9. **Safety changes:** prepare an exercise alternative or an unconfirmed Later proposal, cancel/dismiss it, then return to Today and tap **Report pain or a concerning symptom**. Choose a symptom you are explicitly testing in this development build. Expect safety guidance to take priority and movement alternatives to be disabled; no cancelled proposal may write. Reopen on the same local day and verify the stored symptom still prevents an old movement plan from replacing safety guidance. Automated tests separately cover a safety change at the confirmation boundary.
+10. **Movement preferences and other barriers:** in Alternatives, select seated or wheelchair mode. To test avoids, first save a movement-to-avoid note in Settings, reopen Alternatives, explicitly select the typed movements to omit, and tap **Use these preferences**. Verify basic substitutions follow those choices without inferring an injury. Mode/avoid choices are local to this Alternatives request in Phase 2; the note is not automatically interpreted. Check late hunger, delivery preference, sweet drink preference, and phone use in bed through the ordinary barrier flow, without a separate Urge screen or any quota/score. Food suggestions must not claim unknown prices, ingredients, nutrition, or allergy safety.
+11. **Watch regression:** run the Watch scheme on the paired Watch. Its existing placeholder/glance still launches; full Watch alternatives and sync remain Phase 6.
+12. **Future plan:** when a suitable tomorrow window is available, confirm it, then verify Start is unavailable before its saved time. Reopen on the scheduled local day: the deferred plan should carry forward if there is no separate plan for that day. Once due, starting makes it active; completion requires a separate explicit completion action. After starting and after completion, relaunch again and verify that the same chosen plan remains on that scheduled day without duplicate active plans or calendar events. A deferred future plan must not be marked complete early.
+
+The precise system Settings path may vary with iOS version. A missing calendar account, denied access, failed save, or deleted event must leave Steady usable and display the resulting state honestly. Phase 2 remains unaccepted until core tests, both simulator builds, and these physical-device checks have recorded results.
+
+If testing an interrupted Calendar save, stop the development process after EventKit returns but before the local success is saved, then reopen Steady. Expect **Review an unfinished Calendar save**, never an automatic retry. **Review previous time** must show the exact earlier proposal; only another **Confirm** may retry it, without creating a duplicate. **Clear Calendar retry** requires the **Clear retry** confirmation and explains that an earlier event may exist; it must not delete or modify Calendar data. After a definitive denied-access failure, Choose/Rest must work without requiring this recovery step.
+
+Today also exposes **Unfinished Calendar save > Clear Calendar retry** when the plan is completed, intentionally rested, or blocked by safety. That recovery must remain reachable without reopening exercise alternatives; clearing it must not write or delete an event.
+
+For a controlled-clock regression in a development build, capture an alternatives/proposal sheet, advance the injected time across local midnight, then attempt its action. It must refresh or refuse the stale day rather than mutate the new day's plan. Repeat against a replaced priority or switched profile. Do not change the device's system time merely to run this check.
 
 ## Continue development
 

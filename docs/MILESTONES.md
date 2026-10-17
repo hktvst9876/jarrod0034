@@ -1,15 +1,15 @@
 # Steady release 1 - seven-phase delivery plan
 
-Status date: **16 October 2026**
+Status date: **17 October 2026**
 
-This file replaces the starter's M0-M10 workflow. Work on one phase at a time, update the evidence block, and stop for review. A phase is complete only after its core tests, iOS simulator build, Watch simulator build, and stated device checks pass on a Mac.
+This file replaces the starter's M0-M10 workflow. Work on one authorised phase at a time, update the evidence block, and stop for review. A phase is complete only after its core tests, iOS simulator build, Watch simulator build, and stated device checks pass on a Mac. D26 records the user's explicit authorisation to prepare Phase 2 while Phase 1 Apple-platform gates remain pending; it does not mark those gates accepted.
 
 ## Status
 
 | Phase | State | Review gate |
 |---|---|---|
-| 1. Foundation | **In progress - source implementation/checks underway** | Mac integration and verification still required |
-| 2. Alternatives | Not started | Phase 1 accepted |
+| 1. Foundation | **Source present; Mac verification pending** | Mac integration, simulator builds, and physical-device verification still required |
+| 2. Alternatives | **Source prepared - static/syntax checks passed; Mac verification pending** | User authorised Phase 2 source work; Apple-platform acceptance evidence still required |
 | 3. Daily Foundations | Not started | Phase 2 accepted |
 | 4. Advisory agent | Not started | Phase 3 accepted |
 | 5. Live food | Not started | Phase 4 accepted |
@@ -102,17 +102,67 @@ The old dedicated Urge/treat-quota work is removed. Cravings are ordinary barrie
 
 **Outcome:** when Plan A no longer fits, the user can choose, defer, or intentionally rest without replanning from scratch.
 
-- [ ] Model outcomes as explicit parts and barriers as user-selected context; do not infer injury, allergy, diagnosis, or emotion.
-- [ ] Repair seed alternatives so each set has two or three primary options with meaningfully different effort.
-- [ ] Every option states minutes, effort, benefit kept, honest tradeoff, steps, and any known price.
-- [ ] Validate that preserved and not-preserved outcome parts are complete and non-overlapping.
-- [ ] Provide deterministic template fallback for every supported plan/barrier pair.
-- [ ] Treat late hunger, delivery preference, sweet drinks, and phone use as ordinary barriers; no Urge screen, treat quota, or savings score.
-- [ ] Implement **Choose**, **Later**, and **Rest on purpose** as separate actions.
-- [ ] A deferred plan creates only an inert calendar proposal. Write to a calendar named `Steady` only after an explicit confirmation sheet.
-- [ ] Add basic movement substitutions; advanced progression remains later scope.
-- [ ] Test set size, distinct effort, outcome invariants, fallback, denied calendar access, and confirmation boundaries.
-- [ ] Device test: replace and reschedule a plan in a few taps; cancel confirmation and verify no event is written.
+**Authority/status:** the user requested Phase 2 after the earlier progress report disclosed Phase 1's unrun Mac/device gates (D26). Phase 2 source is prepared and static/syntax checks passed on Windows; this is not acceptance of either phase. Phase 3 has not started. Checked source items below mean implemented/reviewed source, not executed Apple-framework behavior.
+
+### Source scope
+
+- [x] Model outcomes as explicit parts and barriers as user-selected context; do not infer injury, allergy, diagnosis, or emotion.
+- [x] Add a repaired typed production catalog with two or three primary options per set and meaningfully different effort; quarantine the legacy fixture.
+- [x] Every option states minutes, effort, benefit kept, honest tradeoff, and steps. No unsourced price is displayed.
+- [x] Validate that preserved and not-preserved outcome parts are complete and non-overlapping.
+- [x] Provide deterministic template fallback for every supported plan/barrier pair; return unavailable when fewer than two eligible options fit.
+- [x] Treat late hunger, delivery preference, sweet drinks, and phone use as ordinary barriers; no Urge screen, treat quota, or savings score.
+- [x] Implement **Choose**, **Later**, and **Rest on purpose** as separate actions.
+- [x] Add local-day chosen/rested/deferred plan and confirmed event-identifier persistence, with no automatic write on refresh/relaunch.
+- [x] A deferred plan creates only an inert calendar proposal. Add a confirmed-write service boundary for the Steady-owned calendar.
+- [x] Recheck safety at selection and confirmation; add guards for stale or replaced performance proposals.
+- [x] Reject actions captured for a previous profile/local day/active priority; preserve scheduled-day linkage through deferred-plan start/completion and atomic carryover.
+- [x] Add tracked Steady-owned event rescheduling and an external-deletion tombstone that prevents recreation.
+- [x] Add basic explicit standing/seated/wheelchair movement substitutions; advanced progression remains later scope.
+- [x] Write core tests for option count, distinct effort/content, outcome partitions, fallback, allowed choices, safety, action idempotence, proposed times, changed conflicts, padding, terminal plans, and inert proposal round trips. These tests have not been executed.
+- [ ] Verify framework-dependent Calendar denial, cancel/confirm, duplicate prevention, external deletion, SwiftData recovery/carryover, and foreground-load race behavior on the integrated app. Source review is not runtime evidence.
+
+### Xcode integration
+
+- [ ] Complete the pending Phase 1 project/target/package/capability/privacy setup above.
+- [ ] Verify synchronized iPhone source membership includes new Alternatives, persistence, and calendar service files. No manual `project.pbxproj` edits.
+- [ ] Verify the SwiftData model container includes the Phase 2 local plan record and launches with existing Phase 1 profile data.
+- [ ] Keep the existing Calendar full-access usage description. Phase 2 adds no notification or location permission.
+
+### Verification gates
+
+- [x] `python scripts/check_source.py` passes for the final source (Windows, 17 October 2026).
+- [ ] `swift test --package-path Packages/SteadyCore` passes; record host and exact result.
+- [ ] The `Steady` scheme builds for an installed iOS simulator with no new warnings.
+- [ ] The Watch scheme builds for an installed watchOS simulator with no new warnings.
+- [ ] Device: barriers return two or three distinct primary alternatives, explicit outcome coverage, duration explanations, steps, benefit, and tradeoff.
+- [ ] Device: Choose replaces the app plan without a calendar write or false completion; same-day refresh/relaunch preserves it.
+- [ ] Device: Rest on purpose remains a saved intentional-rest action, without a workout completion or calendar event.
+- [ ] Device: Later shows title/date/start/end/reason; cancel and dismiss preserve the previous plan and write nothing.
+- [ ] Device: Confirm creates one Steady-owned event; refresh/relaunch do not duplicate it; reschedule updates only the tracked event after another confirmation, including A-to-B-to-A changes.
+- [ ] Device: denied Calendar remains usable for Choose/Rest; failed/denied scheduling never claims success or replays after access is restored.
+- [ ] Device: deleting the event in Apple Calendar makes the app plan unscheduled; refresh/relaunch never recreates it.
+- [ ] Device: a confirmed tomorrow plan carries into its local day when no separate plan exists; future deferred plans cannot start/complete early, a due plan requires explicit Start then completion, and the chosen plan remains correctly associated with that day after relaunch at each step without duplicate active owners.
+- [ ] Device: a newly reported safety symptom blocks a stale exercise alternative or deferral, including after relaunch on the same local day.
+- [ ] Device: low-data mode, seated/wheelchair preferences, avoided movements, and ordinary craving/phone-use barriers behave according to the specification.
+- [ ] Paired Watch regression: the existing placeholder/glance launches; no Phase 6 sync is claimed.
+
+Use README section **9. Phase 2 physical-device acceptance** for the numbered procedure. Record passes, failures, and unrun checks separately.
+
+### Evidence
+
+- Source implementation: prepared/reviewed on Windows on 17 October 2026. The repository contains 103 Swift files, including 14 test files and 95 `@Test` declarations: 56 existing plus 26 alternatives and 13 rescheduling declarations (39 new). Declaration counts are not passing test executions.
+- Static source command/result: `scripts/check_source.py` run with the configured Python interpreter **PASSED** for 103 Swift files, including 14 test files. Portable rerun command: `python scripts/check_source.py`.
+- Syntax/source audit: tree-sitter 0.26.0 with Swift grammar 0.7.4 parsed all 103 Swift files with no error or missing nodes. No production force unwraps, unusual control characters, or multi-statement missing-return candidates were found. This is not Swift compilation or type checking.
+- Diff whitespace check: `git diff --check` **PASSED**.
+- Production catalog: nine templates/27 options. Seed, app-resource, and test-fixture copies are byte-identical, SHA-256 `d69bab2fd83de533c135224620b93cb277c42570a6953302baa3682fc9f82ff2`. Legacy `alternatives.json` remains quarantined.
+- Core Swift test command/result: **NOT RUN**. `swift` is unavailable on this Windows host; run `swift test --package-path Packages/SteadyCore` on the Mac. No compiler/test success is claimed.
+- iOS simulator build: not run; requires macOS/Xcode and the integrated project.
+- watchOS simulator build: not run; requires macOS/Xcode and the integrated project.
+- Xcode project: not created; follow README's numbered setup steps without editing `project.pbxproj`.
+- New Xcode warning count: unknown; builds not run.
+- Real iPhone/Watch checks: not run.
+- Review decision: source review found no further concrete issue after the recorded fixes; phase acceptance remains pending Apple-platform/device evidence. Phase 3 remains not started.
 
 ---
 
@@ -204,4 +254,4 @@ The old dedicated Urge/treat-quota work is removed. Cravings are ordinary barrie
 - [ ] No guilt language, diagnosis, unsafe intensification, invented fact, or unconfirmed consequential action.
 - [ ] Low-data mode is respected by every surface introduced in the phase.
 - [ ] `README.md`, this file, and `DECISIONS.md` contain accurate status and evidence.
-- [ ] The user accepts the phase before work begins on the next one.
+- [ ] The user accepts the phase before work begins on the next one, or explicitly authorises source work for a named phase with the unrun gates recorded (D26); acceptance is never inferred from that exception.

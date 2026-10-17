@@ -1,0 +1,857 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "id": "phase2-rest",
+      "planType": "rest",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-rest-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "dailyRoutine"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-rest-light",
+          "title": "Make space for a quiet break",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Set one task aside.",
+            "Take a comfortable quiet break with no completion target."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-rest-moderate",
+          "title": "Prepare a quiet reset",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Clear one small interruption if you want to.",
+            "Leave time for a comfortable quiet break."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        }
+      ]
+    },
+    {
+      "id": "phase2-windDown",
+      "planType": "windDown",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-windDown-minimal",
+          "title": "Put the phone aside and settle",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "sleepOpportunity"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Put the phone out of reach if that suits you.",
+            "Leave the next moment free to settle; sleep is not guaranteed."
+          ],
+          "planType": "windDown",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-windDown-light",
+          "title": "Keep a simple wind-down",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "sleepOpportunity"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Set aside the current task.",
+            "Choose a familiar quiet activity before bed."
+          ],
+          "planType": "windDown",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-windDown-moderate",
+          "title": "Prepare and wind down",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "sleepOpportunity"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Prepare what you need for tomorrow.",
+            "Set the phone aside and choose a quiet activity before bed."
+          ],
+          "planType": "windDown",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        }
+      ]
+    },
+    {
+      "id": "phase2-walk",
+      "planType": "walk",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-walk-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "gentleMovement"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-walk-light",
+          "title": "Try comfortable seated mobility",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "gentleMovement"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Use only familiar upper-body movements; stop for pain or unusual symptoms."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        },
+        {
+          "id": "phase2-walk-moderate",
+          "title": "Take a short indoor walk",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "gentleMovement"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use a familiar accessible indoor route.",
+            "Walk at a comfortable pace with breaks; stop for pain or unusual symptoms."
+          ],
+          "planType": "walk",
+          "supportedMovementModes": [
+            "standing"
+          ],
+          "requiredMovements": [
+            "walking",
+            "standing",
+            "lowerBody"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-mobility",
+      "planType": "mobility",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-mobility-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "gentleMovement"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-mobility-light",
+          "title": "Try comfortable seated mobility",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "gentleMovement"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Choose one familiar upper-body movement and keep the range comfortable."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        },
+        {
+          "id": "phase2-mobility-moderate",
+          "title": "Try a familiar mobility sequence",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "gentleMovement"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Use a few familiar upper-body movements with breaks; stop for pain or unusual symptoms."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-strength",
+      "planType": "strength",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-strength-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "strengthStimulus"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-strength-light",
+          "title": "Keep comfortable mobility",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "strengthStimulus"
+          ],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Try one familiar upper-body movement; this does not replace strength training."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        },
+        {
+          "id": "phase2-strength-moderate",
+          "title": "Do a shorter familiar strength routine",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "strengthStimulus"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use only movements and loads already comfortable in your usual routine.",
+            "Do one familiar easy set with breaks; do not add load or repetitions to make up time.",
+            "Stop for pain or unusual symptoms."
+          ],
+          "planType": "strength",
+          "supportedMovementModes": [
+            "standing"
+          ],
+          "requiredMovements": [
+            "standing",
+            "upperBody",
+            "lowerBody"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-cardio",
+      "planType": "cardio",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-cardio-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "aerobicMovement"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-cardio-light",
+          "title": "Keep comfortable mobility",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "aerobicMovement"
+          ],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Try familiar upper-body movements; this does not replace aerobic activity."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        },
+        {
+          "id": "phase2-cardio-moderate",
+          "title": "Take a short comfortable indoor walk",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "aerobicMovement"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Use a familiar accessible indoor route.",
+            "Keep a comfortable pace with breaks; stop for pain or unusual symptoms."
+          ],
+          "planType": "walk",
+          "supportedMovementModes": [
+            "standing"
+          ],
+          "requiredMovements": [
+            "walking",
+            "standing",
+            "lowerBody"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-downtime",
+      "planType": "downtime",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-downtime-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [
+            "stressRelief"
+          ],
+          "doesNotPreserve": [
+            "gentleMovement"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding another task."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-downtime-light",
+          "title": "Make a little quiet space",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [
+            "stressRelief"
+          ],
+          "doesNotPreserve": [
+            "gentleMovement"
+          ],
+          "steps": [
+            "Set a task aside.",
+            "Take a comfortable quiet break without a completion target."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-downtime-moderate",
+          "title": "Try a little comfortable mobility",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [
+            "gentleMovement"
+          ],
+          "doesNotPreserve": [
+            "stressRelief"
+          ],
+          "steps": [
+            "Use your usual comfortable seated position; no transfer is required.",
+            "Use a few familiar upper-body movements with breaks; stop for pain or unusual symptoms."
+          ],
+          "planType": "mobility",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": [
+            "upperBody"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-planned",
+      "planType": "planned",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-planned-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "dailyRoutine"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-planned-light",
+          "title": "Keep one small routine cue",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Choose a familiar manageable preparation step.",
+            "Do only that step; the original activity remains optional."
+          ],
+          "planType": "planned",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-planned-moderate",
+          "title": "Prepare the next small step",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine"
+          ],
+          "doesNotPreserve": [],
+          "steps": [
+            "Identify one small step from your own plan.",
+            "Prepare what you need and do that step if it still fits."
+          ],
+          "planType": "planned",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        }
+      ]
+    },
+    {
+      "id": "phase2-steadyDay",
+      "planType": "steadyDay",
+      "barriers": [
+        "anotherOption",
+        "lowEnergy",
+        "sore",
+        "stressed",
+        "noTime",
+        "badWeather",
+        "homeLate",
+        "noKitchen",
+        "socialPlans",
+        "lowBudget",
+        "lateHunger",
+        "deliveryPreference",
+        "sweetDrinkPreference",
+        "phoneUseInBed"
+      ],
+      "options": [
+        {
+          "id": "phase2-steadyDay-minimal",
+          "title": "Take a quiet pause",
+          "minutes": 1,
+          "effort": "minimal",
+          "benefitKept": "Makes room for a manageable pause; no original outcome part is claimed.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [],
+          "doesNotPreserve": [
+            "dailyRoutine",
+            "nourishment",
+            "sleepOpportunity"
+          ],
+          "steps": [
+            "Choose a comfortable position.",
+            "Pause without adding a task; stop whenever you wish."
+          ],
+          "planType": "downtime",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-steadyDay-light",
+          "title": "Keep one small routine cue",
+          "minutes": 5,
+          "effort": "light",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine"
+          ],
+          "doesNotPreserve": [
+            "nourishment",
+            "sleepOpportunity"
+          ],
+          "steps": [
+            "Choose a familiar manageable preparation step.",
+            "Do only that step; this is not a substitute for a meal or a sleep opportunity."
+          ],
+          "planType": "planned",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        },
+        {
+          "id": "phase2-steadyDay-moderate",
+          "title": "Prepare a simple wind-down",
+          "minutes": 10,
+          "effort": "moderate",
+          "benefitKept": "Keeps the listed outcome parts at a smaller scale.",
+          "tradeoff": "The listed outcome parts are not retained. The full activity's duration and scope are not retained.",
+          "preserves": [
+            "dailyRoutine",
+            "sleepOpportunity"
+          ],
+          "doesNotPreserve": [
+            "nourishment"
+          ],
+          "steps": [
+            "Set out what you need for tomorrow.",
+            "Set the phone aside and choose a familiar quiet activity before bed."
+          ],
+          "planType": "windDown",
+          "supportedMovementModes": [
+            "standing",
+            "seated",
+            "wheelchair"
+          ],
+          "requiredMovements": []
+        }
+      ]
+    }
+  ]
+}
