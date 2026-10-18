@@ -68,6 +68,7 @@ struct OnboardingView: View {
     }
 
     private func finishOnboarding() {
+        guard !DataDeletionGate.shared.isBlocked, modelContext.autosaveEnabled else { return }
         let profile = model.makeProfile(completedAt: environment.now)
         modelContext.insert(profile)
         do {

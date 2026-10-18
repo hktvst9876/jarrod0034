@@ -7,14 +7,20 @@ struct SteadyApp: App {
     private let modelContainerResult: Result<ModelContainer, Error>
 
     init() {
-        modelContainerResult = Result { try ModelContainer(for: ProfileRecord.self, PlanRecord.self, ChoiceRecord.self) }
+        modelContainerResult = Result {
+            try ModelContainer(for: ProfileRecord.self, PlanRecord.self, ChoiceRecord.self,
+                               FoundationPreferenceRecord.self, FoundationDayRecord.self, FoundationResponseRecord.self,
+                               FoodCorrectionRecord.self, WatchIssuedSnapshotRecord.self,
+                               WatchActionReceiptRecord.self, WatchMovementRecord.self, WatchMealHandoffRecord.self,
+                               WeeklyReviewRecord.self, WeeklyExperimentRecord.self, WeeklyMetricRecord.self)
+        }
     }
 
     var body: some Scene {
         WindowGroup {
             switch modelContainerResult {
             case .success(let modelContainer):
-                AppLaunchView()
+                PrivacyLaunchView(container: modelContainer)
                     .environment(environment)
                     .environment(\.calendar, environment.calendar)
                     .environment(\.timeZone, environment.calendar.timeZone)

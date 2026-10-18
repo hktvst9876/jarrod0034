@@ -26,9 +26,11 @@ struct CalendarWriteProposal: Identifiable, Codable, Sendable, Equatable {
 /// A distinct type makes every EventKit write pass through a visible confirmation action.
 struct UserConfirmedCalendarWrite: Sendable {
     let proposal: CalendarWriteProposal
+    let privacyRevision: Int
 
     private init(proposal: CalendarWriteProposal) {
         self.proposal = proposal
+        self.privacyRevision = DataDeletionGate.shared.revision
     }
 
     @MainActor

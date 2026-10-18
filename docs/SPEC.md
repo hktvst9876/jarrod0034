@@ -1,8 +1,8 @@
 # Steady release 1 product specification
 
-Version: 1.2
-Date: 2026-10-17
-Status: Approved scope; Phase 2 source prepared and static/syntax checks passed; Phase 1/2 Mac verification pending
+Version: 1.7
+Date: 2026-10-18
+Status: Approved scope; Phase 7 source prepared and static/syntax checks passed (D48); Phase 1/2/3/4/5/6/7 Mac verification pending
 
 This specification supersedes conflicting scope in the original starter. `docs/MILESTONES.md` controls delivery order, and `docs/DECISIONS.md` records replacements without erasing history.
 
@@ -34,7 +34,7 @@ The app is wellness support, not medical care. It must remain useful without Hea
 These are fixed unless a later dated decision explicitly changes them:
 
 - The daily planner and alternative templates are local and deterministic.
-- Phase 4 may add optional Apple Foundation Models on supported iOS 26+ devices. It may rank allowlisted choices or reword approved explanations only.
+- Phase 4 adds optional Apple Foundation Models ranking on supported iOS 26+ devices. It may only reorder allowlisted alternative IDs; canonical wording and outcome facts remain unchanged (D38).
 - There is no cloud advisor, backend, provider API key, paid API, or automatic web crawler in release 1.
 - Live food support uses user-triggered MapKit discovery, official-source links, cited SG FoodID data when a match is defensible, and remembered user corrections.
 - Menus, opening hours, prices, ingredients, and nutrition are never invented. Unknown stays unknown.
@@ -399,6 +399,21 @@ The nudge planner is pure and returns a notification, a silent Today card, or a 
 6. After repeated dismissal, move a type from normal to reduced frequency and then paused.
 7. Prefer a silent Today update when an action can wait.
 
+### Phase 3 state, timing, and notification boundaries
+
+- Six deterministic local families are available without Health, Calendar, or notification permission. Done, replacement, and snooze are local-day states; disabled kinds and explicit standing/seated/wheelchair/avoided-movement preferences persist across days. Foundation preferences are separate from the request-local Phase 2 Alternatives controls (D30).
+- A replacement is not completion. Actions have stable IDs and a captured local day; duplicate delivery applies once. A new Singapore day resets daily progress and expired snoozes without re-enabling disabled kinds. Snoozes must be finite, future, within the same local day, and no more than twelve hours away. Safety is checked again at action time; a stored choice cannot override it.
+- A saved free-text movement note is never interpreted as an injury or automatically converted into typed exclusions. The user explicitly reviews and saves preferences. If no suitable physical option remains, show unavailable rather than filler.
+- Hydration is thirst-led, with no fixed intake volume or timer, and respects personal clinician-provided fluid guidance. Daylight options offer accessible shade, normal sun protection, no sun gazing, and an indoor/skip choice when outdoor conditions are unsuitable. No UV, treatment, detox, or dose claim is inferred. The smallest wind-down is a brief optional starting point, not an elaborate checklist.
+- Reminders start off. An explanation precedes Apple's permission prompt. Current system authorization is checked at scheduling time; denial leaves the quiet in-app experience intact. Sample mode uses a separate sample provider and never schedules real notifications.
+- The pure planner returns a proactive notification, silent Today card, or typed drop reason. Automatic can-wait candidates remain silent. User-requested snoozes may be considered proactively, but still use the same budget and blocking rules. Calendar-unavailable context is silent rather than treated as a known free window; optional workout samples remain uncertain when unavailable.
+- Recurring quiet periods use Singapore wall-clock minutes, may cross midnight, and equal start/end means quiet all day. Protect the entire proposed action interval against quiet periods, planned sleep, timed Calendar blocks, and known workouts. Move within the same local day and expiry if possible; otherwise drop. Never invent a future free window.
+- Keep a device-wide persistent ceiling of three distinct proactive reservations per Singapore local day, including user-requested snoozes. Refresh, relaunch, profile change, cancellation, and uncertain/failed scheduling cannot refund reservations automatically. This conservative count can exceed actual deliveries but cannot expand the ceiling. Sample reservations do not create real notifications.
+- Two dismissals reduce that type to consideration every other Singapore local day (a two-local-day cooldown, not a guarantee of forty-eight elapsed hours). Four dismissals pause it. Explicit **Resume reminders for this Foundation**, or marking that Foundation **Done**, resets its dismissal count. Merely opening a notification, replacing/enabling an option, ordinary refresh, and day rollover do not reset that history.
+- Real notifications use ordinary active interruption, no sound, and no time-sensitive/critical level. Open-app updates remain silent. Notification text uses allowlisted neutral wording and never includes raw Health values; low-data wording removes sensitive context.
+- The notification delegate writes only a minimal durable response inbox. The main-actor store applies matching-profile responses idempotently on foreground load; stale day/option Done or Snooze cannot complete or defer today's different choice. Opening a reminder routes to Foundations from any selected tab without resetting dismissal history. A scheduling callback does not directly mutate SwiftData or bypass safety.
+- Schedule only prospective current-day requests from the latest foreground context. Foreground refresh reconciles access, context, responses, and pending requests. No continuous background context refresh, guaranteed delivery time, APNs/server, or multi-day scheduling is promised in Phase 3.
+
 ## 9. Phase 4: Advisory agent
 
 Expose one app-facing protocol:
@@ -412,10 +427,12 @@ protocol AdvisorProviding: Sendable {
 Providers:
 
 - `TemplateAdvisor`: required, deterministic, offline, and the universal fallback.
-- `OnDeviceAdvisor`: optional on supported iOS 26+ Apple Intelligence devices. It may rank candidate IDs and reword explanations.
+- `OnDeviceAdvisor`: optional on supported iOS 26+ Apple Intelligence devices, off until explicit opt-in. It may only return a permutation of the current allowlisted alternative IDs.
 - `CloudAdvisor`: not implemented in release 1.
 
-Narrow tool contracts may expose coarse wellness context, free windows without event details, deterministic alternatives, relevant saved preferences, sourced food evidence, and inert calendar proposals.
+Phase 4 implements ranking of existing Phase 2 alternative sets, not a conversational assistant or autonomous tool runner. One coordinator first obtains the deterministic result and applies SafetyGate, then optionally requests ranking. The model receives a minimal typed packet of opaque choice aliases, approved candidate attributes, a coarse time budget, and optionally the explicit user-selected barrier enum. In normal mode that enum can describe soreness, stress, or low energy; it is a user-stated selection, never an inferred condition. The packet receives no HealthKit-derived measurements, recovery labels, SafetyGate symptom/alert records, full EventKit events, original plan/profile identifiers, precise calendar times, diagnoses, free-text movement notes, or unrestricted persisted models. Low-data mode removes the selected barrier rather than merely hiding it on screen. Unknown data stays unknown. Deterministic cards appear immediately; only an explicit **Try on-device order** action after opt-in invokes inference, never automatic background shuffling.
+
+Model output contains IDs only. After validation, the coordinator reconstructs the result from the original canonical options, preserving title, minutes, effort, steps, benefit, tradeoff, outcome partition, and any approved source facts exactly. Phase 4 produces no new medical or food facts, reworded explanations, citation text, calendar proposals, or tool calls. Food provenance and allergy filtering remain Phase 5 work. ID-only output cannot add an uncited claim, infer an injury/emotion/allergy, or grant action authority.
 
 `ResponseValidator` rejects:
 
@@ -428,6 +445,12 @@ Narrow tool contracts may expose coarse wellness context, free windows without e
 - anything blocked by SafetyGate or the content rules.
 
 If on-device model availability or validation fails, return the template result. Core functionality must not degrade.
+
+The response must contain each candidate ID exactly once, with no additions, duplicates, omissions, or more than three options. Bind it to the same active plan, candidate set, profile-local-day/sample mode, request, and current safety/context snapshot. A cancelled or stale response cannot reorder a newer set. Recheck safety before display and before a later action; choosing a ranked option still passes the existing action checks and explicit Calendar confirmation boundary. The advisor cannot choose, complete, rest, save a preference, schedule a notification, or write Calendar.
+
+Use `#if canImport(FoundationModels)` to preserve compilation with an older SDK, and runtime availability checks for iOS 26 and model readiness. The deployment target stays iOS 18; the Watch stays on its existing placeholder and Foundation-only shared package. Devices or builds without Foundation Models always use TemplateAdvisor. Availability is checked for each request; Steady does not promise that a device is supported, trigger a model download, or fall back to a cloud service. Sample mode always uses TemplateAdvisor even after opt-in.
+
+An advisor setting may store only the explicit opt-in. Diagnostic history is separate, bounded, in-memory state with coarse source/status entries: no prompts, model output, option content, raw context, or user free text. Clear it independently without changing plans, Foundation responses, reminder preferences, or other wellness records, and invalidate in-flight requests. App termination clears the in-memory history. Each request creates a fresh model session with no retained app transcript. No persisted advisor transcript or prompt/output logging is introduced; clearing Steady's activity does not promise to erase Apple's system-managed model state or diagnostics.
 
 ## 10. Calendar confirmation boundary
 
@@ -480,6 +503,17 @@ Unknown is not safe. Other free-text allergies receive the same conservative tre
 
 A correction affects future ranking only after the user selects Remember this and confirms.
 
+### Phase 5 implementation boundaries
+
+- Nearby food is explicitly requested from Eat. Opening the tab must not start a search or request location. A typed area remains available without location permission; approximate location is optional, foreground-only, and never requires precise/Always access. Sample mode must not invoke live location or place discovery.
+- Treat discovered venues as places to check, not discovered menu items. A MapKit website or Maps link may be shown with that limited label, never as an identity-verified official menu. Without adequate ingredient/dietary evidence there may be fewer than three eligible choices, or none. Do not pad the result with uncertain primary recommendations.
+- Keep official evidence venue-bound and fact-specific. A source URL alone does not substantiate a price, complete ingredient list, current hours, or nutrition. A checked timestamp records when the evidence was checked, not a promise that it remains current.
+- No reviewed official-menu/ingredient catalog or defensible SG FoodID record/portion dataset is bundled in this source handoff. Current live venues and manual observations therefore stay confirmation-required rather than primary meal recommendations. Keep a typed cited-record matcher for reviewed records, link to HPB's food-search reference, and show `estimate unavailable` when no defensible match exists. The link itself is not a nutrition match. Legacy `foods.json` values stay fixtures, not verified fallback facts.
+- Saved prior-visit records remain dated user evidence. Ingredients may still be incomplete and cross-contact uncertain; an explicit confirmation is not an allergy-safety guarantee. Free-text allergies and dietary rules are not guessed from venue/dish names. Unresolved restrictions require confirmation rather than a primary recommendation.
+- Bind searches, open correction drafts, and confirmations to current profile, sample mode, local day, request inputs, and saved-record revision. Changing context must invalidate stale results/proposals. Cancelling or dismissing Remember writes nothing; a failed save must not claim success. Sample and real saved records stay separate.
+- Persist only confirmed corrections/saved dishes needed for future use. Keep transient searches and approximate location out of personal history. No automatic menu crawler, paid service, cloud advisor, hidden network request, spending total, or meal-completion claim is introduced.
+- Low-data mode hides calorie/nutrition detail on introduced food surfaces and does not send food/profile free text to the Phase 4 advisor. Each displayed price, portion, date, or other numeric fact has a tappable one-line explanation.
+
 ## 12. Phase 6: Apple Watch
 
 Watch surfaces:
@@ -500,6 +534,24 @@ Synchronization:
 - each Watch action has an ID and is applied once on the phone.
 
 The Watch remains useful when disconnected and queues actions safely. Low-data mode applies to every Watch surface.
+
+### Phase 6 action and privacy boundaries
+
+- A phone snapshot is cached context, not a guarantee of live Health, Calendar, safety, or delivery state. Show its age and a neutral refresh/unavailable state when stale. The iPhone works without a paired or reachable Watch.
+- The Watch glance labels completed, intentionally rested, and deferred plans honestly rather than presenting them as a new action to start. Every action button is bound to the exact displayed snapshot; repeated option IDs cannot retarget it to a newer profile/day/plan.
+- A bounded durable Watch outbox retains explicit action IDs until a typed phone receipt confirms acceptance or rejection. Transport submission alone is not completion. Do not silently evict unacknowledged actions to make space; show queue-full/storage/unavailable states honestly.
+- The phone validates supported schema, payload bounds, scope, profile, sample mode, Singapore local day, snapshot/action identity, allowlisted content, and current state before any mutation. Recheck current safety for performance actions. A stale/replaced/disabled/completed option cannot mutate its replacement.
+- Commit the accepted action's local mutation and apply-once receipt atomically. An uncertain or failed save must remain retryable with the same action ID rather than claiming success. Duplicate delivery returns the existing outcome, never a second mutation. Bound ingress and new-receipt processing rather than silently pruning replay protection: retain the phone's apply-once receipt-ID ledger and consumed handoff records until a later explicit data-deletion flow. No Phase 6 delete/export UI is introduced.
+- Choosing a quick alternative changes the app-owned plan only. It is not completion and never calls EventKit. Basic movement logging is explicitly user-reported local information, not a HealthKit workout/sample, automatic strength count, or proof of an unobserved activity.
+- Foundation Done uses the same deterministic local-day/option/safety rules as the phone. It cannot enable reminders, reset another kind, or bypass a new safety state.
+- Saved-meal handoff refers only to an already confirmed saved record. It opens the phone's evidence-labelled review; it does not save a correction, start a search, record eating, infer current ingredients/allergy safety, or bypass Remember confirmation. Missing/replaced/stale records are unavailable, not reconstructed from a name.
+- Transmit the minimum typed values needed for the glance/actions. No raw Health samples, complete Calendar details, advisor transcript, location history, full food search, or unrestricted user notes. Low-data mode removes sensitive fields from the packet, not just the display; changing mode invalidates the prior scope.
+- Use `updateApplicationContext` for replaceable latest state and `transferUserInfo` for durable actions. This implementation does not need `sendMessage`, a backend, APNs, a new permission prompt, iCloud entitlement, or background mode. WatchConnectivity scheduling is system-managed; no delivery deadline or continuous background refresh is promised.
+- Apply phone actions only when current foreground context is loaded. Watch background connectivity handling may save incoming transport data/receipts locally, not execute phone wellness mutations. Sample wellness packets/actions never cross the live link; entering sample mode may send one empty low-data control snapshot to clear cached real content on the Watch.
+- The Watch SwiftUI scene handles `.backgroundTask(.watchConnectivity)` by waiting for pending transport delivery and receiving local data/receipts; task completion/cancellation is system-managed. It schedules no periodic background refresh. Validate durable outbox integrity and revision-watermark consistency before enabling actions; report a corrupt store instead of resetting it.
+- The phone issues snapshots with a fifteen-minute lifetime, bounded by Singapore midnight; shared validation also enforces a four-hour absolute maximum. A disconnected Watch cannot immediately learn a phone low-data/sample/profile change. Its prior received cache remains only until expiry or a newer valid frame arrives; no immediate remote erase is promised. Pending actions carry the old scope and the phone rejects them when that scope is no longer current.
+- Bound the Watch outbox at fifty pending actions and its displayed receipt history at one hundred. Bound each local raw transport inbox at one hundred combined action/receipt packets, and enforce typed packet byte limits. The phone processes at most 256 new receipts per Singapore day; replay of an already persisted action ID remains available after that cap. A cap/storage error leaves work pending instead of dropping it or claiming a mutation succeeded. Manual movement remains a retained local user record, not an aggregate activity score.
+- Common actions target at most two taps from the glance. Verify this and VoiceOver usability on a real paired Watch; a source layout does not satisfy the device gate. Stop before Phase 7 weekly learning.
 
 ## 13. Phase 7: Weekly learning
 
@@ -523,6 +575,21 @@ Export and deletion:
 - Delete all Steady data only after confirmation.
 - Clear advisor history independently from wellness records.
 
+### Phase 7 evidence and action boundaries
+
+- A review covers a named Monday-start Singapore week, not an inferred rolling score. Query permitted sleep context when requested; saved reviews retain the review date and optional user-stated helpfulness, not the runtime Health aggregate. Raw HealthKit samples and full EventKit details remain in Apple's stores. Show tracked-day/night coverage alongside observed values; no observation is not zero activity, missed sleep, or a failed action. Actual sleep and an in-bed sleep-opportunity proxy are separate, uncertain observations.
+- Separate plans saved, plans explicitly completed, changed plans, intentional rest, alternatives chosen, Foundation responses, user-reported movement, remembered food records, and helpfulness. A plan's current status cannot prove the historical timing of an unrecorded completion. A saved dish/correction is not evidence that it was eaten, and Watch handoff is not consumption. Do not show food frequency as "commonly eaten" without an explicit meal record.
+- Local evaluation begins when the introduced surface records it. Do not invent past suggestion views, accepts, time-to-choose, alternative completion, correction denominators, or helpfulness from unrelated retained rows. Unsupported measures remain unavailable. No hidden background analytics or remote delivery is introduced.
+- The initial supported default proposal is Exam mode off to on after evidence of changed plans on three distinct days of the reviewed week; it cannot increase movement. Sample mode cannot propose or apply this shared real-profile default. Approval binds to the displayed profile, sample mode, week, revision, and current preference value, with a thirty-minute same-local-day freshness boundary. Cancel/dismiss/refresh/relaunch cannot apply a change; stale or replaced state requires a fresh review. A weekly pattern or favorable wearable context cannot increase training load or override SafetyGate.
+- Starting an experiment is an explicit choice, not an automatic default change. Keep one active time-bounded experiment from small plan, wind-down, or quiet Foundation, with its simple self-report measure and explicit two-to-fourteen-day dates. Completion or ending it must be honest about its status. An experiment is not a prescription, streak, score, or permission to enable reminders.
+- Low-data mode applies to the review, approval, experiment, evaluation, and exported JSON. If any saved profile uses low-data mode, the entire multi-profile JSON archive is metadata-only: salted opaque record keys/IDs, profile UUIDs, dates, and sample/real markers, without content, measurements, settings, or opaque payloads. Exports distinguish omission from zero, include a schema version and limitations manifest, and contain app-owned records only. No import/restore workflow is implemented; a redacted archive is not a complete backup.
+- Export starts only after the user invokes it, previews its scope, and opens the system share sheet. Do not upload automatically or export raw HealthKit samples, complete Calendar events, advisor prompts/output/transcripts, temporary place searches, or approximate-location history.
+- Delete all Steady data requires an explicit destructive confirmation describing what will be removed and what will remain. Cancel/dismiss writes nothing. Stop or invalidate in-flight actions and callbacks so they cannot recreate the old profile's data. Clear app-owned persisted records, app preferences/opt-ins, local reminder reservations/response inboxes, companion receipts/transports/caches, and separately clearable advisor activity. Deletion never calls HealthKit or EventKit to remove Apple's records or revokes system permission.
+- Deletion has a recoverable, honest failure state rather than claiming success after a partial clear. Retain only a non-personal deletion journal/generation cutoff, not the deleted wellness history. Keep proactive reminders quiet until the next Singapore day, so resetting/recreating a profile cannot refund the daily ceiling. If cleanup is interrupted, show that condition and finish only the previously confirmed operation; it is not authority to delete newly created data. A disconnected Watch may retain its expiring prior cache until a valid clearing control frame is received. A readable Watch store is cleared selectively through that generation; an unreadable store remains an honest incomplete-privacy-clear failure, never an automatic wipe of unknown newer records. No immediate remote erase is promised, and old actions must not resurrect deleted wellness data or mutate a new profile.
+- A readable pending privacy journal permits retrying its confirmed operation. An unreadable journal instead blocks normal data access in a separate unavailable/recheck-only state: do not claim prior confirmation, guess a lower generation, or accept fresh destructive confirmation over an unknown cutoff. App-accessible record deletion is not a forensic secure-erase guarantee for storage, exported copies, system backups, or Apple-owned stores.
+
+Phase 7 source authority (D48) does not establish an accepted release. Run the core tests, both simulator builds, source migration/failure checks, and physical-device procedure before accepting the phase or distributing the app.
+
 ## 14. Persistence and privacy
 
 Release 1 stores only records needed for the experience, such as profile, any later consent-notice receipts, plans, choices, foundation settings, nudge response, saved dishes, confirmed corrections, weekly reviews, experiments, and local metrics. Phase 1 keeps system permission state in its service layer rather than duplicating it as a SwiftData consent record.
@@ -535,7 +602,7 @@ Do not persist:
 - system authorization as if it were app-owned consent; or
 - hidden network payloads.
 
-If advisor history is introduced, keep it separately clearable from wellness records. Any context packet is a typed minimal value, never a SwiftData model, HealthKit sample, EventKit event, or unrestricted dictionary.
+Phase 4 advisor diagnostics are separately clearable, bounded in-memory status history, not a persisted transcript. Do not persist prompts, model outputs, context packets, or candidate text. Any context packet is a typed minimal value, never a SwiftData model, HealthKit sample, EventKit event, or unrestricted dictionary.
 
 ## 15. HealthKit scope
 
@@ -621,6 +688,9 @@ Every phase also requires:
 - Apple HealthKit setup: https://developer.apple.com/documentation/healthkit/setting-up-healthkit
 - Apple EventKit access: https://developer.apple.com/documentation/eventkit/accessing-the-event-store
 - Apple MapKit `MKMapItem`: https://developer.apple.com/documentation/mapkit/mkmapitem
+- Apple MapKit `MKLocalSearch`: https://developer.apple.com/documentation/mapkit/mklocalsearch
+- Apple reduced location accuracy default: https://developer.apple.com/documentation/bundleresources/information-property-list/nslocationdefaultaccuracyreduced
 - Apple WatchConnectivity: https://developer.apple.com/documentation/watchconnectivity/transferring-data-with-watch-connectivity
 - Apple capability availability: https://developer.apple.com/help/account/reference/supported-capabilities-ios
 - Singapore HPB SG FoodID: https://www.hpb.gov.sg/healthy-living/food-and-beverage/sgfoodid/
+- Singapore HPB SG FoodID food search: https://pphtpc.hpb.gov.sg/web/sgfoodid/tools/food-search

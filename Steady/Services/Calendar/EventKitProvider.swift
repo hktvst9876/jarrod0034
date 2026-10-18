@@ -61,6 +61,8 @@ actor EventKitProvider: CalendarProviding {
     }
 
     func write(_ confirmed: UserConfirmedCalendarWrite) throws -> String {
+        guard !DataDeletionGate.shared.isBlocked,
+              confirmed.privacyRevision == DataDeletionGate.shared.revision else { throw PrivacyDataError.staleRequest }
         try requireFullAccess()
         let proposal = confirmed.proposal
         try validateProposal(proposal)
@@ -95,6 +97,9 @@ actor EventKitProvider: CalendarProviding {
         guard let event = store.event(withIdentifier: identifier) else { return .missing }
         return isOwned(event) ? .exists : .unavailable
     }
+
+    /// Actor barrier only. User-owned Apple Calendar content is deliberately unchanged.
+    func resetLocalState() {}
 
     private func events(in range: DateRange) -> [EKEvent] {
         let predicate = store.predicateForEvents(

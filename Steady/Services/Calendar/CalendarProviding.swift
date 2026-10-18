@@ -21,6 +21,12 @@ protocol CalendarProviding: Sendable {
     func reschedulingBusyIntervals(in range: DateRange, excluding eventIdentifier: String?) async throws -> [BusyInterval]
     func write(_ confirmed: UserConfirmedCalendarWrite) async throws -> String
     func eventState(identifier: String) async -> CalendarEventState
+    func resetLocalState() async
+}
+
+extension CalendarProviding {
+    /// A local reset never deletes Apple Calendar events or calendars.
+    func resetLocalState() async {}
 }
 
 enum CalendarServiceError: LocalizedError {

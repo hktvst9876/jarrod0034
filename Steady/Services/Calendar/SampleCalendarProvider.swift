@@ -36,6 +36,8 @@ actor SampleCalendarProvider: CalendarProviding {
     }
 
     func write(_ confirmed: UserConfirmedCalendarWrite) throws -> String {
+        guard !DataDeletionGate.shared.isBlocked,
+              confirmed.privacyRevision == DataDeletionGate.shared.revision else { throw PrivacyDataError.staleRequest }
         guard !confirmed.proposal.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               confirmed.proposal.end > confirmed.proposal.start,
               !confirmed.proposal.operationID.isEmpty else {
@@ -88,6 +90,13 @@ actor SampleCalendarProvider: CalendarProviding {
 
     func eventState(identifier: String) -> CalendarEventState {
         savedEvents.contains { $0.id.uuidString == identifier } ? .exists : .missing
+    }
+
+    func resetLocalState() {
+        savedEvents = []
+        savedOperationIDs = [:]
+        UserDefaults.standard.removeObject(forKey: eventsKey)
+        UserDefaults.standard.removeObject(forKey: operationsKey)
     }
 
     private func sampleCommitments(in range: DateRange) -> [CalendarCommitment] {

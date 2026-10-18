@@ -2,10 +2,13 @@ import SwiftUI
 
 @main
 struct SteadyWatchApp: App {
+    @State private var model = WatchCompanionModel()
+
     var body: some Scene {
         WindowGroup {
-            WatchPlaceholderView()
+            WatchCompanionView(model: model)
         }
+        .backgroundTask(.watchConnectivity) { await model.receiveInBackground() }
     }
 }
 

@@ -5,7 +5,7 @@ import SwiftData
 extension PlanStore {
     func load(profile: ProfileRecord, sample: Bool, snapshot: PhaseOneContextSnapshot?, proposedPlan: PlanItem?,
               environment: AppEnvironment, context: ModelContext) async {
-        guard !isWorking else { return }
+        guard dataAccessValid, !isWorking else { return }
         let ticket = UUID()
         loadID = ticket
         hasLoaded = false
@@ -44,7 +44,7 @@ extension PlanStore {
             try refreshValues()
             if let record, let identifier = record.eventIdentifier {
                 let state = await environment.calendar(useSampleData: sample).eventState(identifier: identifier)
-                guard loadID == ticket else { return }
+                guard dataAccessValid, loadID == ticket else { return }
                 if state == .missing, let plan {
                     record.eventIdentifier = nil
                     record.calendarEventDeleted = true
@@ -57,12 +57,14 @@ extension PlanStore {
             }
             hasLoaded = true
         } catch {
+            guard dataAccessValid else { return }
             context.rollback()
             failure = "Your saved plan could not be loaded. \(error.localizedDescription)"
         }
     }
 
     func carryForward(_ previous: PlanRecord, key: String, day: Date, at: Date, context: ModelContext) throws -> PlanRecord {
+        guard dataAccessValid else { throw PlanStoreError.contextChanged }
         let value = try PlanRecord(key: key, profileID: previous.profileID, day: day,
             sampleData: previous.sampleData, plan: previous.originalPlan(), at: at)
         value.originalPlanData = previous.originalPlanData

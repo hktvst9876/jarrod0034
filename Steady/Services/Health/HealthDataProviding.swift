@@ -12,6 +12,7 @@ protocol HealthDataProviding: Sendable {
     func requestReadAccess() async throws -> HealthAccessState
     func sleepSamples(in interval: DateInterval) async throws -> [SleepSample]
     func activityContext(on day: Date, calendar: Calendar) async throws -> ActivityContext
+    func workoutIntervals(in range: DateRange) async throws -> [DateRange]
     func safetyFlags(on day: Date, calendar: Calendar) async throws -> [SafetyFlag]
     func recoveryInput(
         on day: Date,

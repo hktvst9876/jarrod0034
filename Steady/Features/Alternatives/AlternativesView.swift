@@ -7,6 +7,7 @@ struct AlternativesView: View {
     @Environment(PlanStore.self) var store
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) var scenePhase
     let profile: ProfileRecord
     let source: PlanItem
     let snapshot: PhaseOneContextSnapshot?
@@ -31,19 +32,34 @@ struct AlternativesView: View {
                     Text("This preference applies to these options.").font(.footnote).foregroundStyle(.secondary)
                     pendingRecovery
                     restrictions
+                    advisorControls
                     options
                     laterAndRest
                     if let message = model.catalogMessage { Text(message).font(.footnote).foregroundStyle(.secondary) }
                     if let failure = store.failure { Text(failure).foregroundStyle(.red).accessibilityIdentifier("alternativeSaveError") }
                 }.padding()
             }
+            .simultaneousGesture(DragGesture(minimumDistance: 1).onChanged { _ in model.freezeOrdering() })
             .navigationTitle("Alternatives")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Done") { model.freezeOrdering(); dismiss() } } }
         }
-        .task { refresh() }
+        .task { environment.advisor.activate(profileID: profile.id, sample: sample); refresh() }
         .onChange(of: model.barrier) { _, _ in refresh() }
         .onChange(of: model.movementMode) { _, _ in refresh() }
+        .onChange(of: model.avoids) { _, _ in refresh() }
         .onChange(of: sample) { _, _ in dismiss() }
+        .onChange(of: source) { _, _ in refresh() }
+        .onChange(of: environment.advisor.revision) { _, _ in model.stopOrdering() }
+        .onChange(of: profile.domainProfile()) { _, _ in refresh() }
+        .onChange(of: profile.movementsToAvoid) { _, _ in model.confirmedRestrictions = false; refresh() }
+        .onChange(of: store.safetyFlags) { _, _ in refresh() }
+        .onChange(of: store.plan) { _, _ in model.stopOrdering() }
+        .onChange(of: store.loadID) { _, _ in model.stopOrdering() }
+        .onChange(of: scenePhase) { _, value in
+            if value != .active { model.stopOrdering() }
+            else { refresh() }
+        }
+        .onDisappear { model.stopOrdering() }
         .sheet(isPresented: $model.showLater, onDismiss: {
             if let requested = model.requestedConfirmation {
                 model.requestedConfirmation = nil
@@ -64,8 +80,8 @@ struct AlternativesView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Review an unfinished Calendar save").font(.headline)
                 Text("The previous event may have been saved. Retrying checks the same change and does not add a second event.")
-                Button("Review previous time") { model.confirmation = proposal }
-                Button("Clear Calendar retry") { showAbandonConfirmation = true }
+                Button("Review previous time") { model.freezeOrdering(); model.confirmation = proposal }
+                Button("Clear Calendar retry") { model.freezeOrdering(); showAbandonConfirmation = true }
             }.steadyCard()
         }
     }
@@ -120,6 +136,7 @@ struct AlternativesView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(option.title).font(.headline)
             Button("\(option.minutes) minutes - \(option.effort.rawValue) effort - Why") {
+                model.freezeOrdering()
                 why = WhyItem(title: "Time and effort", explanation: "This is an approximate template duration and a relative effort level. Stop or shorten whenever you need.")
             }.font(.subheadline)
             Text("Keeps: \(option.benefitKept)")
@@ -128,18 +145,20 @@ struct AlternativesView: View {
             Text("Leaves out: \(parts(option.doesNotPreserve))").font(.footnote)
             ForEach(Array(option.steps.enumerated()), id: \.offset) { _, step in Text("- \(step)").font(.subheadline) }
             Button("Choose this") {
+                model.freezeOrdering()
                 Task {
                     if await store.choose(option, from: set, source: source, profile: profile, sample: sample,
                                           environment: environment, context: context) { dismiss() }
                     else { refresh() }
                 }
             }.buttonStyle(.borderedProminent)
-        }.steadyCard()
+        }.steadyCard().simultaneousGesture(TapGesture().onEnded { model.freezeOrdering() })
     }
 
     var laterAndRest: some View {
         VStack(alignment: .leading, spacing: 12) {
             Button("Later", systemImage: "clock") {
+                model.freezeOrdering()
                 Task {
                     guard await store.refreshSafety(profile: profile, sample: sample, environment: environment) else { refresh(); return }
                     if let previous = store.pendingProposal() { model.confirmation = previous; return }
@@ -147,6 +166,7 @@ struct AlternativesView: View {
                 }
             }.buttonStyle(.bordered)
             Button("Rest on purpose", systemImage: "leaf") {
+                model.freezeOrdering()
                 Task {
                     if await store.act(.restOnPurpose, source: source, profile: profile, sample: sample,
                                        environment: environment, context: context) { dismiss() }

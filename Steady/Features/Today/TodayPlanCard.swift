@@ -8,7 +8,7 @@ extension TodayView {
             VStack(alignment: .leading, spacing: 12) {
                 Text("TODAY'S PRIORITY").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                 Text(planStore.safetyMessage?.title ?? (planStore.plan == nil ? priority.title : "Follow your chosen plan")).font(.title2.bold())
-                Text(planStore.safetyMessage?.guidance ?? planStore.plan?.outcome.summary ?? priority.explanation.summary).foregroundStyle(.secondary)
+                Text(planStore.safetyMessage?.guidance ?? planStore.plan?.outcome.summary ?? priorityExplanation(priority)).foregroundStyle(.secondary)
                 Divider()
                 let activePlan = planStore.effectivePlan(priority: priority) ?? priority.planA
                 Label(activePlan.title, systemImage: "arrow.right.circle.fill").font(.headline)
@@ -38,7 +38,7 @@ extension TodayView {
                     .font(.subheadline)
                 }
                 Button("Why this priority") {
-                    why = WhyItem(title: "Today's priority", explanation: planStore.plan == nil ? priority.explanation.summary : "This is the plan you chose. Refreshing context keeps your choice; a safety concern takes precedence.")
+                    why = WhyItem(title: "Today's priority", explanation: planStore.plan == nil ? priorityExplanation(priority) : "This is the plan you chose. Refreshing context keeps your choice; a safety concern takes precedence.")
                 }
                 Button("Choose another priority") { showPriorityChoices = true }
                     .buttonStyle(.bordered)
@@ -53,6 +53,19 @@ extension TodayView {
                 }
             }
             .steadyCard()
+        }
+    }
+
+    private func priorityExplanation(_ priority: DailyPriority) -> String {
+        guard profile.lowDataMode else { return priority.explanation.summary }
+        switch priority.kind {
+        case .protectBedtime:
+            return "Protecting tonight's sleep opportunity fits the available context. Sleep-duration details are hidden by low-data mode."
+        case .recover:
+            return "An easier plan fits the available context or your check-in. Recovery labels and measurements are hidden by low-data mode."
+        default:
+            // In particular, never suppress safety guidance or an explicit user's chosen plan.
+            return priority.explanation.summary
         }
     }
 }

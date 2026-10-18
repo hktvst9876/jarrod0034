@@ -6,6 +6,8 @@ import SwiftData
 @MainActor
 @Observable
 final class PlanStore {
+    @ObservationIgnored let dataRevision = DataDeletionGate.shared.revision
+    var dataAccessValid: Bool { !DataDeletionGate.shared.isBlocked && dataRevision == DataDeletionGate.shared.revision }
     var record: PlanRecord?
     var plan: PlanItem?
     var originalPlan: PlanItem?
@@ -37,8 +39,10 @@ final class PlanStore {
 
 
     func refreshSafety(profile: ProfileRecord, sample: Bool, environment: AppEnvironment) async -> Bool {
+        guard dataAccessValid else { return false }
         let latest = (try? await environment.health(useSampleData: sample)
             .safetyFlags(on: environment.now, calendar: environment.calendar)) ?? safetyFlags
+        guard dataAccessValid else { return false }
         safetyFlags = latest + reportedFlags(profile, environment: environment) + sessionSafetyFlags
         if let safetyMessage {
             failure = safetyMessage.guidance
@@ -68,6 +72,7 @@ final class PlanStore {
 
     func ensureRecord(_ source: PlanItem, profile: ProfileRecord, sample: Bool,
                               environment: AppEnvironment, context: ModelContext) throws -> PlanRecord {
+        guard dataAccessValid else { throw PlanStoreError.contextChanged }
         if let record {
             guard record.profileID == profile.id, record.sampleData == sample,
                   record.key == currentKey(profile: profile, sample: sample, environment: environment) else { throw PlanStoreError.contextChanged }
@@ -84,6 +89,7 @@ final class PlanStore {
 
     func insertChoice(action: String, barrier: AlternativeBarrier?, optionID: String?, plan: PlanItem,
                               profile: ProfileRecord, sample: Bool, at: Date, context: ModelContext) throws {
+        guard dataAccessValid else { throw PlanStoreError.contextChanged }
         let choice = SavedChoice(id: UUID().uuidString, planID: plan.id, at: at, action: action, barrier: barrier, optionID: optionID)
         context.insert(try ChoiceRecord(choice: choice, profileID: profile.id, sampleData: sample))
     }
@@ -95,6 +101,7 @@ final class PlanStore {
     }
 
     func fail(_ error: Error, context: ModelContext) -> Bool {
+        guard dataAccessValid else { record = nil; plan = nil; hasLoaded = false; return false }
         context.rollback()
         if let key = activeKey ?? loadedKey {
             record = try? context.fetch(FetchDescriptor<PlanRecord>(predicate: #Predicate { $0.key == key })).first

@@ -58,6 +58,8 @@ extension PlanStore {
             message = sample ? "Sample event saved. Your real Calendar was not changed." : "Saved to your Steady calendar."
             return true
         } catch {
+            // A completed privacy reset owns the old context; never save recovery state into it.
+            guard dataAccessValid else { return false }
             context.rollback()
             let removedEvent: Bool
             if let serviceError = error as? CalendarServiceError {

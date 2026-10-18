@@ -43,6 +43,14 @@ struct SampleHealthProvider: HealthDataProviding {
 
     func safetyFlags(on day: Date, calendar: Calendar) async throws -> [SafetyFlag] { [] }
 
+    func workoutIntervals(in range: DateRange) async throws -> [DateRange] {
+        let calendar = SteadyCalendar.singapore()
+        guard let start = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: range.start),
+              let end = calendar.date(byAdding: .minute, value: 20, to: start),
+              end > range.start, start < range.end else { return [] }
+        return [DateRange(start: start, end: end)]
+    }
+
     func recoveryInput(
         on day: Date,
         sleepLastNightHours: Double?,

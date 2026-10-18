@@ -9,14 +9,24 @@ struct SettingsView: View {
     @State private var model = SettingsViewModel()
     @AppStorage("useSampleData") private var useSampleData = false
     @State private var saveError: String?
+    @State private var showFoundations = false
 
     var body: some View {
         Form {
             profileSection
             sleepSection
             movementSection
+            Section("Daily Foundations") {
+                Button("Foundation preferences and reminders", systemImage: "leaf") { showFoundations = true }
+                Text("Small optional actions, movement preferences, quiet periods, and notification controls.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
             foodSection
             privacySection
+            Section("Your local data") {
+                NavigationLink("Export or delete Steady data") { DataControlsView(profile: profile) }
+            }
+            AdvisorSettingsSection(profile: profile, sample: useSampleData)
             permissionSection
             debugSection
             aboutSection
@@ -34,6 +44,8 @@ struct SettingsView: View {
         } message: {
             Text(saveError ?? "Please try again.")
         }
+        .sheet(isPresented: $showFoundations) { FoundationsView(profile: profile, snapshot: nil) }
+        .onChange(of: profile.lowDataMode) { _, _ in ArchiveLease.invalidateAll() }
     }
 
     private var profileSection: some View {
@@ -80,7 +92,7 @@ struct SettingsView: View {
                 TextField("Maximum per meal", value: pricePreferenceValue, format: .currency(code: "SGD"))
                     .keyboardType(.decimalPad)
             }
-            Text("Allergies will be hard filters. Unknown ingredients are never assumed safe.")
+            Text("Known allergen conflicts are excluded. Free-text allergy and dietary notes stay conservative: unknown ingredients require checking with the place and never become a primary choice. Edit request-only dislikes and kitchen access in Eat.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -90,7 +102,7 @@ struct SettingsView: View {
         Section("Privacy and display") {
             Toggle("Low-data mode", isOn: $profile.lowDataMode)
             Toggle("Exam mode", isOn: $profile.examMode)
-            Text("Low-data mode hides calorie, weight-trend and recovery-label details everywhere.")
+            Text("Low-data mode hides sleep-duration and consistency details, calories, weight trends, and recovery labels across Steady.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -155,6 +167,7 @@ struct SettingsView: View {
     }
 
     private func save() {
+        guard !DataDeletionGate.shared.isBlocked, modelContext.autosaveEnabled else { return }
         do {
             try modelContext.save()
         } catch {

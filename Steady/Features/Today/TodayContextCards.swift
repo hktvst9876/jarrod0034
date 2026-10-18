@@ -3,6 +3,7 @@ import SwiftUI
 
 struct TodaySleepCard: View {
     let sleep: SleepContext
+    let lowDataMode: Bool
     @Binding var why: WhyItem?
     let ignoreSleep: () -> Void
 
@@ -10,7 +11,17 @@ struct TodaySleepCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Last night", systemImage: "moon.zzz")
                 .font(.headline)
-            if let night = sleep.lastNight {
+            if lowDataMode {
+                Text(sleep.lastNight == nil ? "No readable sleep data for last night."
+                    : "Readable sleep context is available. Duration and wake time are hidden in low-data mode.")
+                    .foregroundStyle(.secondary)
+                Button("Why these details are hidden") {
+                    why = WhyItem(title: "Low-data sleep context", explanation: "Measured sleep duration and wake time are hidden by your chosen privacy mode. Missing observations remain unknown; available context may still support planning without showing a score.")
+                }.font(.footnote)
+                if sleep.lastNight != nil {
+                    Button("That doesn't look right") { ignoreSleep() }.font(.footnote)
+                }
+            } else if let night = sleep.lastNight {
                 Text(duration(night.asleepMinutes)).font(.title3.bold())
                 Text("Wake time \(night.wakeTime.formatted(date: .omitted, time: .shortened))")
                     .foregroundStyle(.secondary)

@@ -16,8 +16,19 @@ final class AlternativesViewModel {
     var confirmedRestrictions = false
     var calendarAvailable = false
     var catalogMessage: String?
+    var canonicalOptions: AlternativeSet?
+    var rankingMessage = "Template order. The option details are always deterministic."
+    var isRanking = false
+    var orderingFrozen = false
+    @ObservationIgnored var orderingTask: Task<Void, Never>?
+    @ObservationIgnored var orderingTimeout: Task<Void, Never>?
+    @ObservationIgnored var orderingGeneration = UUID()
 
     func refresh(source: PlanItem, profile: ProfileRecord, snapshot: PhaseOneContextSnapshot?, store: PlanStore) {
+        stopOrdering()
+        orderingFrozen = false
+        canonicalOptions = nil
+        catalogMessage = nil
         guard profile.movementsToAvoid.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || confirmedRestrictions else {
             result = nil
             return
@@ -33,6 +44,7 @@ final class AlternativesViewModel {
                 recoveryStatus: snapshot?.recovery.status ?? .normal, movementMode: movementMode,
                 movementsToAvoid: avoids, safetyFlags: store.safetyFlags)
         )
+        if let result, case .options(let set) = result { canonicalOptions = set }
     }
 
     func prepareLater(source: PlanItem, profile: ProfileRecord, snapshot: PhaseOneContextSnapshot?, store: PlanStore,

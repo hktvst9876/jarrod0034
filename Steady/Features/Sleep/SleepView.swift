@@ -3,9 +3,11 @@ import SwiftUI
 
 struct SleepView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.scenePhase) private var scenePhase
     let profile: ProfileRecord
     @State private var model = SleepViewModel()
     @State private var why: WhyItem?
+    @State private var observedDay: Date?
     @AppStorage("useSampleData") private var useSampleData = false
 
     var body: some View {
@@ -26,7 +28,21 @@ struct SleepView: View {
             .navigationTitle("Sleep")
             .refreshable { await reload() }
         }
-        .task(id: useSampleData) { await reload() }
+        .task(id: request) {
+            guard scenePhase == .active else { model.invalidate(); return }
+            await reload()
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            observedDay = environment.calendar.startOfDay(for: environment.now)
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(30)) } catch { return }
+                guard !Task.isCancelled, scenePhase == .active else { return }
+                observedDay = environment.calendar.startOfDay(for: environment.now)
+            }
+        }
+        .onDisappear { model.invalidate() }
+        .onChange(of: profile.lowDataMode) { _, _ in why = nil }
         .sheet(item: $why) { item in
             WhySheet(title: item.title, explanation: item.explanation)
         }
@@ -35,7 +51,14 @@ struct SleepView: View {
     private var lastNightCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Last night").font(.headline)
-            if let night = model.sleep.lastNight {
+            if profile.lowDataMode {
+                Text(model.sleep.lastNight == nil ? "No readable sleep data for last night."
+                    : "Readable sleep context is available. Duration and wake time are hidden in low-data mode.")
+                    .foregroundStyle(.secondary)
+                Button("Why these details are hidden") {
+                    why = WhyItem(title: "Low-data sleep context", explanation: "Your chosen low-data mode hides measured sleep duration, wake time, shortfall, and consistency labels. Available context can still support planning without displaying a sleep score.")
+                }
+            } else if let night = model.sleep.lastNight {
                 Text(duration(night.asleepMinutes)).font(.title.bold())
                 Text("Woke at \(night.wakeTime.formatted(date: .omitted, time: .shortened))")
                     .foregroundStyle(.secondary)
@@ -58,7 +81,14 @@ struct SleepView: View {
     private var recentCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent pattern").font(.headline)
-            if let shortfall = model.sleep.shortfall7dMinutes {
+            if profile.lowDataMode {
+                Text("Sleep duration, shortfall, and consistency labels are hidden in low-data mode.")
+                    .foregroundStyle(.secondary)
+                LabeledContent("Coverage", value: "\(model.sleep.nightsTracked) tracked nights")
+                Button("Why this coverage") {
+                    why = WhyItem(title: "Readable sleep coverage", explanation: "This counts nights with readable sleep observations in the recent window. Missing nights remain unknown, never zero sleep; this is coverage, not a sleep score.")
+                }
+            } else if let shortfall = model.sleep.shortfall7dMinutes {
                 LabeledContent("Combined shortfall", value: duration(shortfall))
                 LabeledContent("Coverage", value: "\(model.sleep.nightsTracked) tracked nights")
                 Button("Why this total") {
@@ -71,7 +101,7 @@ struct SleepView: View {
                 Text("Not enough readable nights for a recent total.")
                     .foregroundStyle(.secondary)
             }
-            if let consistency = model.sleep.wakeConsistency {
+            if !profile.lowDataMode, let consistency = model.sleep.wakeConsistency {
                 LabeledContent("Wake timing", value: consistency.label.title)
                 Button("Why this pattern") {
                     why = WhyItem(
@@ -87,6 +117,10 @@ struct SleepView: View {
     private var bedtimeCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Tonight").font(.headline)
+            if profile.lowDataMode {
+                Text("These are optional planning times from your chosen preferences, not measured sleep or a recovery score.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
             if let plan = model.sleep.bedtimePlan {
                 BedtimeRow(
                     label: "Bedtime window",
@@ -125,7 +159,18 @@ struct SleepView: View {
     }
 
     private func reload() async {
-        await model.load(profile: profile, environment: environment, useSampleData: useSampleData)
+        guard scenePhase == .active else { model.invalidate(); return }
+        let requestedMode = useSampleData
+        let requestedProfile = profile.domainProfile()
+        await model.load(profile: profile, environment: environment, useSampleData: requestedMode,
+            requestIsCurrent: { scenePhase == .active && requestedMode == useSampleData
+                && requestedProfile == profile.domainProfile() })
+    }
+
+    private var request: SleepLoadIdentity {
+        SleepLoadIdentity(profile: profile.domainProfile(), sample: useSampleData,
+            day: observedDay ?? environment.calendar.startOfDay(for: environment.now),
+            active: scenePhase == .active, privacyRevision: environment.dataLifecycle.revision)
     }
 
     private func duration(_ minutes: Int) -> String {
@@ -135,6 +180,14 @@ struct SleepView: View {
     private func time(_ date: Date) -> String {
         date.formatted(date: .omitted, time: .shortened)
     }
+}
+
+private struct SleepLoadIdentity: Equatable {
+    let profile: Profile?
+    let sample: Bool
+    let day: Date
+    let active: Bool
+    let privacyRevision: Int
 }
 
 private struct BedtimeRow: View {

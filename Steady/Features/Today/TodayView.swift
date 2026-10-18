@@ -6,6 +6,7 @@ struct TodayView: View {
     @Environment(AppEnvironment.self) var environment
     @Environment(\.modelContext) var modelContext
     @Environment(PlanStore.self) var planStore
+    @Environment(FoundationStore.self) var foundationStore
     @Environment(\.scenePhase) var scenePhase
     let profile: ProfileRecord
     @Bindable var model: TodayViewModel
@@ -15,6 +16,7 @@ struct TodayView: View {
     @State var showPriorityChoices = false
     @State var saveError: String?
     @State var showAlternatives = false
+    @State var showFoundations = false
     @State var showClearCalendarRetry = false
     @State var pendingRetryOperationID: String?
     @AppStorage("useSampleData") var useSampleData = false
@@ -29,6 +31,7 @@ struct TodayView: View {
                     } else {
                         priorityCard
                         pendingCalendarRecovery
+                        foundationsCard
                         if let message = planStore.message { Text(message).font(.footnote).foregroundStyle(.secondary) }
                         if let failure = planStore.failure { Text(failure).foregroundStyle(.red) }
                         contextCards
@@ -48,6 +51,7 @@ struct TodayView: View {
         }
         .task(id: useSampleData) { await reload() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await reload() } } }
+        .onChange(of: profile.lowDataMode) { _, _ in why = nil }
         .sheet(isPresented: $showSettings, onDismiss: { Task { await reload() } }) {
             NavigationStack { SettingsView(profile: profile) }
         }
@@ -74,6 +78,7 @@ struct TodayView: View {
                 AlternativesView(profile: profile, source: source, snapshot: model.snapshot)
             }
         }
+        .sheet(isPresented: $showFoundations) { FoundationsView(profile: profile, snapshot: model.snapshot) }
         .confirmationDialog("Pause exercise advice for today?", isPresented: $showSafetyChoices) {
             ForEach(Symptom.allCases, id: \.rawValue) { symptom in
                 Button(symptom.title) {
@@ -95,7 +100,7 @@ struct TodayView: View {
     @ViewBuilder
     var contextCards: some View {
         if let snapshot = model.snapshot {
-            TodaySleepCard(sleep: snapshot.sleep, why: $why) {
+            TodaySleepCard(sleep: snapshot.sleep, lowDataMode: profile.lowDataMode, why: $why) {
                 model.ignoreSleepForPriority = true
                 Task { await reload() }
             }

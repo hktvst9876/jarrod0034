@@ -9,7 +9,7 @@ extension PlanStore {
 
     func validateContext(profile: ProfileRecord, sample: Bool, environment: AppEnvironment) throws {
         let key = currentKey(profile: profile, sample: sample, environment: environment)
-        guard hasLoaded, loadedKey == key else { throw PlanStoreError.contextChanged }
+        guard dataAccessValid, hasLoaded, loadedKey == key else { throw PlanStoreError.contextChanged }
         if let record {
             guard record.key == key, record.profileID == profile.id,
                   record.sampleData == sample, record.supersededByKey == nil else { throw PlanStoreError.contextChanged }

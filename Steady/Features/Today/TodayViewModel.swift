@@ -19,7 +19,8 @@ final class TodayViewModel {
 
     func load(profile record: ProfileRecord, environment: AppEnvironment, useSampleData: Bool,
               requestIsCurrent: () -> Bool = { true }) async -> Bool {
-        guard let profile = record.domainProfile() else { return false }
+        let privacyRevision = DataDeletionGate.shared.revision
+        guard !DataDeletionGate.shared.isBlocked, let profile = record.domainProfile() else { return false }
         let requestID = UUID()
         loadRequestID = requestID
         let loadedDay = environment.calendar.startOfDay(for: environment.now)
@@ -47,7 +48,8 @@ final class TodayViewModel {
             ignoreLastNightSleep: ignoreSleepForPriority,
             manualFreeMinutes: manualFreeMinutes
         )
-        guard loadRequestID == requestID, !Task.isCancelled, requestIsCurrent(),
+        guard !DataDeletionGate.shared.isBlocked, privacyRevision == DataDeletionGate.shared.revision,
+              loadRequestID == requestID, !Task.isCancelled, requestIsCurrent(),
               record.domainProfile() == profile,
               environment.calendar.startOfDay(for: environment.now) == loadedDay else { return false }
         snapshot = loaded

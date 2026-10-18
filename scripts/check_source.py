@@ -40,8 +40,49 @@ for path in swift_files:
         check(not re.search(r"\b(?:print|fatalError)\s*\(", source), f"Debug/crash call: {name}")
         check(not re.search(r"\bimport\s+(?:Firebase|Alamofire|OpenAI|Anthropic)\b", source), f"Third-party app dependency: {name}")
         check(not re.search(r"\bURLSession\b", source), f"Unexpected network client in the local planner: {name}")
+        check(not re.search(r"\b(?:class|struct|actor)\s+CloudAdvisor\b", source), f"Cloud advisor is outside release 1: {name}")
+        if re.search(r"\bimport\s+FoundationModels\b", source):
+            check(bool(re.search(r"#if\s+canImport\s*\(\s*FoundationModels\s*\)", source)),
+                  f"Foundation Models requires an older-SDK compile guard: {name}")
+            check(bool(re.search(r"(?:@available|#available)\s*\(\s*iOS\s+26(?:\.0)?\b", source)),
+                  f"Foundation Models requires an iOS 26 availability guard: {name}")
         check(not re.search(r"\b(?:try|as)!(?:\s|\b)", source), f"Force operation: {name}")
     check("\ufffd" not in source, f"Replacement character in source: {name}")
+    is_food = "/Food/" in "/" + name or "/Eat/" in "/" + name
+    if is_food and not is_test:
+        check(not re.search(r"\bLegacyFoodSeed\b|foods\.json", source),
+              f"Legacy food fixtures must not enter production food help: {name}")
+        check(not re.search(r"\brequestAlwaysAuthorization\b|\brequestTemporaryFullAccuracyAuthorization\b|\bstartMonitoringSignificantLocationChanges\b", source),
+              f"Food discovery must not request always/precise/background location: {name}")
+        if re.search(r"\bimport\s+CoreLocation\b", source):
+            check("kCLLocationAccuracyReduced" in source, f"Food location must request reduced accuracy: {name}")
+    is_watch_boundary = "/WatchSync/" in "/" + name or "/CompanionConnectivity/" in "/" + name
+    if is_watch_boundary and not is_test:
+        check(not re.search(r"\bimport\s+(?:HealthKit|EventKit|FoundationModels)\b", source),
+              f"Watch sync must not access raw Health/Calendar or model frameworks: {name}")
+        check(not re.search(r"\b(?:URLSession|transferFile|transferCurrentComplicationUserInfo)\b", source),
+              f"Watch sync uses bounded typed context/userInfo, not arbitrary files or network clients: {name}")
+
+# Keep the explicit Phase 7 schema exhaustive when another app-owned model is added.
+# These are source guards, not execution of migration, deletion, or serialization.
+model_names: set[str] = set()
+for path in (ROOT / "Steady/Persistence").glob("*.swift"):
+    model_names.update(re.findall(r"@Model\s+final\s+class\s+(\w+)", path.read_text(encoding="utf-8-sig")))
+archive_tables = (ROOT / "Steady/Services/Privacy/SteadyArchiveTables.swift").read_text(encoding="utf-8-sig")
+archive_builder = (ROOT / "Steady/Services/Privacy/SteadyArchiveBuilder.swift").read_text(encoding="utf-8-sig")
+deletion_source = (ROOT / "Steady/Services/Privacy/DataLifecycle.swift").read_text(encoding="utf-8-sig")
+container_source = (ROOT / "Steady/App/SteadyApp.swift").read_text(encoding="utf-8-sig")
+check(bool(model_names), "No app-owned models found for data-control schema audit")
+for model in model_names:
+    check(model + ".self" in container_source, f"Model absent from app container: {model}")
+    check(f"FetchDescriptor<{model}>" in archive_builder, f"Model absent from export capacity audit: {model}")
+    check(model in archive_tables or (model == "ProfileRecord" and "profiles.map(profileRow)" in archive_tables),
+          f"Model absent from explicit export schema: {model}")
+    check(f"remove({model}.self, context)" in deletion_source, f"Model absent from confirmed deletion: {model}")
+for path in (ROOT / "Steady/Services/Privacy").glob("*.swift"):
+    source = path.read_text(encoding="utf-8-sig")
+    check(not re.search(r"\bimport\s+(?:HealthKit|EventKit|CoreLocation|MapKit)\b", source),
+          f"Data controls must not query raw external records: {relative(path)}")
 
 for filename in ("foods.json", "alternatives.json", "plan-alternatives.json"):
     fixture = ROOT / "docs/seed" / filename
