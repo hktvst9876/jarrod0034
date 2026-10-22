@@ -108,7 +108,8 @@ public struct LegacyGrocery: Decodable, Equatable, Sendable {
     public let priceSGD: Decimal
     public let priceConfidence: String
     public let validUntil: String?
-    public let note: String
+    /// Optional: most groceries in the seed (and the app's foods.json) have no note.
+    public let note: String?
     public let forKitchen: String
     public let diet: String
 

@@ -22,11 +22,23 @@ struct WatchSnapshotTests {
         #expect(snapshot.priority?.title == "Today's priority")
         #expect(snapshot.plan?.title == "A comfortable walk")
         #expect(snapshot.savedMeals.first?.title == "Saved dish A")
-        let text = String(decoding: try WatchWireCodec.encode(snapshot), as: UTF8.self)
+        // Check only the encoded strings. Searching the raw JSON also matched digits
+        // inside numeric fields: the encoded `day` (813945600 in Singapore time)
+        // contains "456" although no free text leaked.
+        let strings = encodedStrings(try JSONSerialization.jsonObject(with: WatchWireCodec.encode(snapshot)))
         for forbidden in ["Private", "calories", "weight", "recovery", "123", "456", "789"] {
-            #expect(!text.contains(forbidden))
+            #expect(!strings.contains { $0.contains(forbidden) }, "free text leaked: \(forbidden)")
         }
         #expect(WatchSnapshotValidator.issue(in: snapshot, clock: watchClock) == nil)
+    }
+
+    private func encodedStrings(_ value: Any) -> [String] {
+        switch value {
+        case let string as String: return [string]
+        case let array as [Any]: return array.flatMap(encodedStrings)
+        case let object as [String: Any]: return object.flatMap { [$0.key] + encodedStrings($0.value) }
+        default: return []
+        }
     }
 
     @Test func lowDataRejectsLeakedPriorityReasonAndMealTitle() {
